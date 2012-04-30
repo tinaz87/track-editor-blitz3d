@@ -331,6 +331,8 @@ Function MainLoop()
 		Flip 
 		
 	Wend 
+	
+	GUI_FreeGUI()
 
 End Function
 
@@ -1268,7 +1270,21 @@ End Function
 Function CreateWindow()
 	
 	comWin = GUI_CreateWindow(ScreenWidth - 280, 0, 280, ScreenHeight, "Commands", "", False, False, True, False)
-	GUI_Message(comWin, "setLocked", True)
+	;GUI_Message(comWin, "setLocked", True)
+	
+	mnuFile = GUI_CreateMenu(comWin, "File")
+	GUI_CreateMenu(mnuFile, "New")
+	GUI_CreateMenu(mnuFile, "Open")
+	GUI_CreateMenu(mnuFile, "Save")
+	GUI_CreateMenu(mnuFile, "-")
+	GUI_CreateMenu(mnuFile, "Exit")
+	mnuEdit = GUI_CreateMenu(comWin, "Edit")
+	GUI_CreateMenu(mnuEdit, "Cut")
+	GUI_CreateMenu(mnuEdit, "Copy")
+	GUI_CreateMenu(mnuEdit, "Paste")
+	mnuHelp = GUI_CreateMenu(comWin, "?")
+	GUI_CreateMenu(mnuHelp, "Help")
+	GUI_CreateMenu(mnuHelp, "About")
 	
 	btnLoad = GUI_CreateButton(comWin, 180, 10,90, 25, "Load Track")
 	btnSave = GUI_CreateButton(comWin, 180, 40,90, 25, "Save Track")
@@ -1454,6 +1470,6 @@ End Function
 ;PositionEntity camera,10,50,10
 ;PointEntity camera,ground
 ;~IDEal Editor Parameters:
-;~F#131#151#1A0#1A9#1B5#1C1#1CA#1D3#1E1#1F4#216#221#22F#247#286#2AC#2BD#2CF#2FB#305
-;~F#3A0#3B5#3DF#3EA#3F3#3FA#405#41B#446#460#479#4A1#4F3#545
+;~F#153#1A2#1AB#1B7#1C3#1CC#1D5#1E3#1F6#218#223#231#249#288#2AE#2BF#2D1#2FD#307#3A2
+;~F#3B7#3E1#3EC#3F5#3FC#407#41D#448#462#47B#4A3
 ;~C#Blitz3D
