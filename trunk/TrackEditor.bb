@@ -58,6 +58,7 @@ Const MediaPath$ 		= ".\Media\"
 Const HeightMapsPath$ 	= ".\Media\HeightMaps\"
 Const TilesPath$ 		= ".\Media\Tiles\"
 Const ObjectsPath$		= ".\Media\3DObjects\"
+Const TexturesPath$		= ".\Media\Textures\"
 
 ; --- VARIABLES ---------------------------------------------------------------------
 
@@ -425,7 +426,7 @@ End Function
 Function LoadResources()
 	
 	; Textures set.
-	tex = LoadTexture("base_0.png")
+	tex = LoadTexture(TexturesPath$ + "base_0.png")
 	
 	LoadHeightmapTextures()
 	LoadTiles()
@@ -1453,6 +1454,6 @@ End Function
 ;PositionEntity camera,10,50,10
 ;PointEntity camera,ground
 ;~IDEal Editor Parameters:
-;~F#130#150#19F#1A8#1B4#1C0#1C9#1D2#1E0#1F3#215#220#22E#246#285#2AB#2BC#2CE#2FA#304
-;~F#39F#3B4#3DE#3E9#3F2#3F9#404#41A#445#45F#478#4A0#4F2#544
+;~F#131#151#1A0#1A9#1B5#1C1#1CA#1D3#1E1#1F4#216#221#22F#247#286#2AC#2BD#2CF#2FB#305
+;~F#3A0#3B5#3DF#3EA#3F3#3FA#405#41B#446#460#479#4A1#4F3#545
 ;~C#Blitz3D
