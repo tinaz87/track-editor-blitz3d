@@ -245,7 +245,7 @@ Global lblNumMarkersPlaced
 
 Global icoBtnLoad
 Global icoBtnSave
-Global icoBtnExit
+Global icoBtnNew
 
 Global addObject = 0
 
@@ -1295,9 +1295,11 @@ Function CreateWindow()
 	
 	trackGroup = GUI_CreateGroupBox(comWin, 10, 5, 270, 50, "Menu")
 	
-	icoBtnSave = GUI_CreateButton(trackGroup, 10, 20, 40, 20,"", IconsPath$ + "filenew.png")
+	icoBtnNew = GUI_CreateButton(trackGroup, 10, 20, 40, 20,"", IconsPath$ + "filenew.png")
 	icoBtnSave = GUI_CreateButton(trackGroup, 55, 20, 40, 20,"", IconsPath$ + "save.png")
-	icoBtnSave = GUI_CreateButton(trackGroup, 100, 20, 40, 20,"", IconsPath$ + "folder.png")
+	icoBtnLoad = GUI_CreateButton(trackGroup, 100, 20, 40, 20,"", IconsPath$ + "folder.png")
+	
+	
 	
 	
 	;GROUP TERRAIN
@@ -1347,15 +1349,15 @@ Function CreateWindow()
 	
 	lblScaleX = GUI_CreateLabel(propertyObjectGroup, 33, 120, "Scale_X")
 	sldX = GUI_CreateSlider(propertyObjectGroup, 35 , 140 ,150)
-	lblScaleXText = GUI_CreateLabel(propertyObjectGroup, 188 , 133, "0%")
+	lblScaleXText = GUI_CreateLabel(propertyObjectGroup, 190 , 133, "0%")
 	
 	lblScaleY = GUI_CreateLabel(propertyObjectGroup, 33, 150, "Scale_Y")
 	sldY = GUI_CreateSlider(propertyObjectGroup, 35 , 170 ,150)
-	lblScaleYText = GUI_CreateLabel(propertyObjectGroup, 188 , 163, "0%")
+	lblScaleYText = GUI_CreateLabel(propertyObjectGroup, 190 , 163, "0%")
 	
 	lblScaleZ = GUI_CreateLabel(propertyObjectGroup, 33, 180, "Scale_Z")
 	sldZ = GUI_CreateSlider(propertyObjectGroup, 35 , 200 ,150)
-	lblScaleZText = GUI_CreateLabel(propertyObjectGroup, 188 , 193, "0%")
+	lblScaleZText = GUI_CreateLabel(propertyObjectGroup, 190 , 193, "0%")
 	
 	lblRot = GUI_CreateLabel(propertyObjectGroup, 33, 210, "Rotation")
 	sldRotation = GUI_CreateSlider(propertyObjectGroup, 35 , 230 ,150,0,0,359)
@@ -1374,12 +1376,20 @@ End Function
 
 Function UpdateWindow()
 	
-	If btnLoad = GUI_AppEvent()
+	If icoBtnLoad = GUI_AppEvent()
 		;LOAD TRACK
 	EndIf
 	
-	If btnSave = GUI_AppEvent()
+	If icoBtnSave = GUI_AppEvent()
 		;SAVE TRACK
+	EndIf
+	
+	If icoBtnNew = GUI_AppEvent()
+		;DO SOMETHING
+	EndIf
+	
+	If btnObjSelected = GUI_AppEvent()
+		;DO SOMETHING
 	EndIf
 	
 	; TERRAIN GROUP
@@ -1396,8 +1406,6 @@ Function UpdateWindow()
 	GUI_Message(lblScaleHmX, "SetText", "" + hmScaleWidth + "%")
 	GUI_Message(lblScaleHmY, "SetText", "" + hmScaleHeight + "%")
 	
-	
-	
 	;insert string in listbox
 	If itemSelected<>GUI_Message(lstboxHM, "getselected")
 		
@@ -1408,69 +1416,38 @@ Function UpdateWindow()
 	
 	If itemSelectedTx<>GUI_Message(lstboxTexture, "getselected")
 		
-		
 		itemSelectedTx = GUI_Message(lstboxTexture, "getselected")
-		DebugLog itemSelectedTx
-		var$ = texturePath(itemSelectedTx)
-		If itemSelectedTx = 15
-			Stop
-		EndIf
-		
 		GUI_Message(imgTx,"setimage",texturePath(itemSelectedTx))
-		
 		
 	EndIf
 	
 	
 	; OBJECT GROUP
 	
-	gscale = 0
 	
-	;gscale = Int(GUI_Message(sldG, "GetValue"))
 	xscale = Int(GUI_Message(sldX, "GetValue"))
 	yscale = Int(GUI_Message(sldY, "GetValue"))
 	zscale = Int(GUI_Message(sldZ, "GetValue"))
 	rot = Int(GUI_Message(sldRotation, "GetValue"))
 	
 	
-	;GUI_Message(lblScaleText, "SetText", "" + gscale + "%")
+	
 	GUI_Message(lblScaleZText, "SetText", "" + zscale + "%")
 	GUI_Message(lblScaleXText, "SetText", "" + xscale + "%")
 	GUI_Message(lblScaleYText, "SetText", "" + yscale + "%")
 	GUI_Message(lblRotation, "SetText", "" + rot + "°")
 	
-	
-	dxObject#(numero_oggetto) = Clamp(xscale + gscale,0,100)
-	dyObject#(numero_oggetto) = Clamp(yscale + gscale,0,100)
-	dzObject#(numero_oggetto) = Clamp(zscale + gscale,0,100)
-	
-	
-	GUI_Message(sldX, "setvalue", Clamp(xscale + gscale - sldGvalue,0,100) )
-	GUI_Message(sldY, "setvalue", Clamp(yscale + gscale - sldGvalue,0,100) )
-	GUI_Message(sldZ, "setvalue", Clamp(zscale + gscale - sldGvalue,0,100) )
-	
-	;sldGvalue = gscale
-	
-	sldXvalue = xscale + gscale
-	sldYvalue = yscale + gscale
-	sldZvalue = yscale + gscale
-	;------------
-	; Devo modificare la posizione del selettore dello slider
-	;-------------
+	dxObject#(numero_oggetto) = xscale
+	dyObject#(numero_oggetto) = yscale
+	dzObject#(numero_oggetto) = zscale
 	
 	
 	GUI_Message(lblCurrentMarkerIndex, "SetText", "Current Marker Index	: " + currentMarkerIndex )
 	GUI_Message(lblNumMarkersPlaced, "SetText", "Nr Marker Placed			: " + numMarkersPlaced )
 	
-	;rotObject#(numero_oggetto) = barra#(rotObject#(numero_oggetto),800,220,200,30,"Angle",360)
-	
-	If btnObjSelected = GUI_AppEvent()
-		;do something
-	EndIf
-	
 	typeObject#(numero_oggetto) = GUI_Message(lstboxObjects, "getselected")
 	
-	;If (GUI_AppEvent() <> -1) Then DebugLog GUI_AppEvent()
+	
 	
 End Function
 
@@ -1487,5 +1464,5 @@ End Function
 ;PointEntity camera,ground
 ;~IDEal Editor Parameters:
 ;~F#133#155#1A4#1B8#1C4#1CD#1D6#1E4#1F7#219#224#232#24A#289#2AF#2C0#2D2#2FE#308#3A3
-;~F#3B8#3E2#3ED#3F6#3FD#408#448#462#47B#4A3#55E
+;~F#3B8#3E2#3ED#3F6#3FD#408#448#462#47B#4A3
 ;~C#Blitz3D
