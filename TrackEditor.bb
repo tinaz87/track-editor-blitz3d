@@ -59,6 +59,7 @@ Const HeightMapsPath$ 	= ".\Media\HeightMaps\"
 Const TilesPath$ 		= ".\Media\Tiles\"
 Const ObjectsPath$		= ".\Media\3DObjects\"
 Const TexturesPath$		= ".\Media\Textures\"
+Const IconsPath$		= ".\Media\Icons\"
 
 ; --- VARIABLES ---------------------------------------------------------------------
 
@@ -242,8 +243,9 @@ Global lblScaleZText
 Global lblCurrentMarkerIndex
 Global lblNumMarkersPlaced
 
-Global btnLoad
-Global btnSave 
+Global icoBtnLoad
+Global icoBtnSave
+Global icoBtnExit
 
 Global addObject = 0
 
@@ -430,8 +432,7 @@ Function LoadResources()
 	; Textures set.
 	tex = LoadTexture(TexturesPath$ + "base_0.png")
 	
-	LoadHeightmapTextures()
-	LoadTiles()
+	
 	LoadObjects()
 	
 End Function 
@@ -1063,9 +1064,8 @@ Function LoadObjects()
 		ext$ = Right(f$, 3)
 		If ((FileType(ObjectsPath$ + f$) = 1) And (f$ <> ".") And (f$ <> "..") And (ext$ = "3ds" Or ext$ = "b3d")) Then
 			filename$ = Left(f$, Len(f$) - 4)
-			GUI_Message(lstboxObjects, "AddItem", -1, filname$)
+			GUI_Message(lstboxObjects, "AddItem", -1, filename$)
 			file$ = ObjectsPath$ + f$
-			
 			objects(index, 0) = LoadMesh(file$)
 			
 			index = index + 1
@@ -1267,70 +1267,79 @@ End Function
 
 ; --- DEVIL GUI ---------------------------------------------------------------------
 
+
+
 Function CreateWindow()
 	
 	comWin = GUI_CreateWindow(ScreenWidth - 280, 0, 280, ScreenHeight, "Commands", "", False, False, True, False)
 	;GUI_Message(comWin, "setLocked", True)
 	
-	mnuFile = GUI_CreateMenu(comWin, "File")
-	GUI_CreateMenu(mnuFile, "New")
-	GUI_CreateMenu(mnuFile, "Open")
-	GUI_CreateMenu(mnuFile, "Save")
-	GUI_CreateMenu(mnuFile, "-")
-	GUI_CreateMenu(mnuFile, "Exit")
-	mnuEdit = GUI_CreateMenu(comWin, "Edit")
-	GUI_CreateMenu(mnuEdit, "Cut")
-	GUI_CreateMenu(mnuEdit, "Copy")
-	GUI_CreateMenu(mnuEdit, "Paste")
-	mnuHelp = GUI_CreateMenu(comWin, "?")
-	GUI_CreateMenu(mnuHelp, "Help")
-	GUI_CreateMenu(mnuHelp, "About")
-	
-	btnLoad = GUI_CreateButton(comWin, 180, 10,90, 25, "Load Track")
-	btnSave = GUI_CreateButton(comWin, 180, 40,90, 25, "Save Track")
-	
+;	mnuFile = GUI_CreateMenu(comWin, "File")
+;	GUI_CreateMenu(mnuFile, "New")
+;	GUI_CreateMenu(mnuFile, "Open")
+;	GUI_CreateMenu(mnuFile, "Save")
+;	GUI_CreateMenu(mnuFile, "-")
+;	GUI_CreateMenu(mnuFile, "Exit")
+;	mnuEdit = GUI_CreateMenu(comWin, "Edit")
+;	GUI_CreateMenu(mnuEdit, "Cut")
+;	GUI_CreateMenu(mnuEdit, "Copy")
+;	GUI_CreateMenu(mnuEdit, "Paste")
+;	mnuHelp = GUI_CreateMenu(comWin, "?")
+;	GUI_CreateMenu(mnuHelp, "Help")
+;;	GUI_CreateMenu(mnuHelp, "About")
+;	
+;	btnLoad = GUI_CreateButton(comWin, 180, 10,90, 25, "Load Track")
+;	btnSave = GUI_CreateButton(comWin, 180, 40,90, 25, "Save Track")
+;	
 	; Track
 	
-	trackGroup = GUI_CreateGroupBox(comWin, 10, 10, 270, 150)
+	trackGroup = GUI_CreateGroupBox(comWin, 10, 5, 270, 50, "Menu")
 	
-	lblCurrentMarkerIndex = GUI_CreateLabel(trackGroup, 10 , 10, "Current Marker Index	: " + currentMarkerIndex)
-	lblNumMarkersPlaced = GUI_CreateLabel(trackGroup, 10 , 25, "Nr Marker Placed	: " + numMarkersPlaced )
+	icoBtnSave = GUI_CreateButton(trackGroup, 10, 20, 40, 20,"", IconsPath$ + "filenew.png")
+	icoBtnSave = GUI_CreateButton(trackGroup, 55, 20, 40, 20,"", IconsPath$ + "save.png")
+	icoBtnSave = GUI_CreateButton(trackGroup, 100, 20, 40, 20,"", IconsPath$ + "folder.png")
+	
 	
 	;GROUP TERRAIN
+	down = 40
 	
 	;HEIGHTMAP
-	terrainGroup = GUI_CreateGroupBox(comWin, 10, 50, 270, 350, "Terrain")
-	lstboxHM = GUI_CreateListBox(terrainGroup,25,25,80,100)
+	terrainGroup = GUI_CreateGroupBox(comWin, 10, 50, 270, 390, "Terrain")
+	lstboxHM = GUI_CreateListBox(terrainGroup,25,25 + down,80,100)
+	
+	lblCurrentMarkerIndex = GUI_CreateLabel(terrainGroup, 25 , 20, "Current Marker Index	: " + currentMarkerIndex)
+	lblNumMarkersPlaced = GUI_CreateLabel(terrainGroup, 25 , 37, "Nr Marker Placed	: " + numMarkersPlaced )
+	
 	
 	LoadHeightmapTextures()
 	
-	imgHM = GUI_CreateImage(terrainGroup, 125, 25, 100, 100, hmPath(itemSelected))
+	imgHM = GUI_CreateImage(terrainGroup, 125, 25 + down, 100, 100, hmPath(itemSelected))
 	
 	;Scale Heightmap
 	
-	lblScale_X = GUI_CreateLabel(comWin, 35 , 190, "Scale Width")
-	sldWidthHm = GUI_CreateSlider(comWin, 100 , 193 ,100)
-	lblScaleHmX = GUI_CreateLabel(comWin, 215 , 186, ""+hmScaleWidth + "%")
+	lblScale_X = GUI_CreateLabel(terrainGroup, 25 , 140 + down, "Scale Width")
+	sldWidthHm = GUI_CreateSlider(terrainGroup, 95 , 143 + down,100)
+	lblScaleHmX = GUI_CreateLabel(terrainGroup, 215 , 136 + down, ""+hmScaleWidth + "%")
 	
 	
-	lblScale_Y = GUI_CreateLabel(comWin, 35 , 210, "Scale Height")
-	sldHeightHm = GUI_CreateSlider(comWin, 100 , 213 ,100)
-	lblScaleHmY = GUI_CreateLabel(comWin, 215 , 206, ""+hmScaleHeight + "%")
+	lblScale_Y = GUI_CreateLabel(terrainGroup, 25 , 160 + down, "Scale Height")
+	sldHeightHm = GUI_CreateSlider(terrainGroup, 95 , 163 + down,100)
+	lblScaleHmY = GUI_CreateLabel(terrainGroup, 215 , 156 + down, ""+hmScaleHeight + "%")
 	
 	
 	;TEXTURE
 	
-	lstboxTexture = GUI_CreateListBox(terrainGroup,25,190,80,100)
+	lstboxTexture = GUI_CreateListBox(terrainGroup,25,190 + down ,80,100)
 	
 	LoadTiles()
 	
-	imgTx = GUI_CreateImage(terrainGroup, 125, 190, 100, 100, texturePath(itemSelectedTx))
+	imgTx = GUI_CreateImage(terrainGroup, 125, 190 + down , 100, 100, texturePath(itemSelectedTx))
 	
-	btnLH = GUI_CreateButton(terrainGroup, 30, 310,190, 25, "Load HeightMap")
+	btnLH = GUI_CreateButton(terrainGroup, 30, 310 + down ,190, 25, "Load HeightMap")
 	
 	;GROUP OBJECT
 	
-	propertyObjectGroup = GUI_CreateGroupBox(comWin, 10, 400, 270, 260, "Property Object")
+	propertyObjectGroup = GUI_CreateGroupBox(comWin, 10, 445, 270, 250, "Property Object")
 	
 	lstboxObjects = GUI_CreateListBox(propertyObjectGroup,30,20,220,60)
 	
@@ -1389,7 +1398,6 @@ Function UpdateWindow()
 	
 	
 	
-	
 	;insert string in listbox
 	If itemSelected<>GUI_Message(lstboxHM, "getselected")
 		
@@ -1400,8 +1408,16 @@ Function UpdateWindow()
 	
 	If itemSelectedTx<>GUI_Message(lstboxTexture, "getselected")
 		
+		
 		itemSelectedTx = GUI_Message(lstboxTexture, "getselected")
+		DebugLog itemSelectedTx
+		var$ = texturePath(itemSelectedTx)
+		If itemSelectedTx = 15
+			Stop
+		EndIf
+		
 		GUI_Message(imgTx,"setimage",texturePath(itemSelectedTx))
+		
 		
 	EndIf
 	
@@ -1454,7 +1470,7 @@ Function UpdateWindow()
 	
 	typeObject#(numero_oggetto) = GUI_Message(lstboxObjects, "getselected")
 	
-	If (GUI_AppEvent() <> -1) Then DebugLog GUI_AppEvent()
+	;If (GUI_AppEvent() <> -1) Then DebugLog GUI_AppEvent()
 	
 End Function
 
@@ -1470,6 +1486,6 @@ End Function
 ;PositionEntity camera,10,50,10
 ;PointEntity camera,ground
 ;~IDEal Editor Parameters:
-;~F#153#1A2#1AB#1B7#1C3#1CC#1D5#1E3#1F6#218#223#231#249#288#2AE#2BF#2D1#2FD#307#3A2
-;~F#3B7#3E1#3EC#3F5#3FC#407#41D#448#462#47B#4A3
+;~F#133#155#1A4#1B8#1C4#1CD#1D6#1E4#1F7#219#224#232#24A#289#2AF#2C0#2D2#2FE#308#3A3
+;~F#3B8#3E2#3ED#3F6#3FD#408#448#462#47B#4A3#55E
 ;~C#Blitz3D
