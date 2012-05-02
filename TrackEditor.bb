@@ -226,7 +226,7 @@ Dim objectsScaleX#(MaxObjectTypes * MaxObjectPerType)
 Dim objectsScaleY#(MaxObjectTypes * MaxObjectPerType)
 Dim objectsScaleZ#(MaxObjectTypes * MaxObjectPerType)
 
-Dim objectsRotationY(MaxObjectTypes * MaxObjectPerType)
+Dim objectsRotationY#(MaxObjectTypes * MaxObjectPerType)
 
 ; Selected type.
 Global selectedType			= 0
@@ -241,6 +241,8 @@ Global addObject 			= 0
 
 
 ; --- DEVIL GUI'S VARIABLES ---------------------------------------------------------
+
+Global comWin
 
 ; Menu buttons.
 Global btnNew
@@ -1123,10 +1125,14 @@ Function SaveTrack()
 	
 End Function
 
+; Save scene objects data.
 Function SaveObjects()
+	
+	DebugLog("Saving objects data...")
 	
 	file = WriteFile(SavedDataPath$ + ObjectsData$)
 	
+	; How many objects I must save?
 	nrObject = 0
 	
 	For n = 0 To MaxObjectTypes - 1
@@ -1135,20 +1141,21 @@ Function SaveObjects()
 		
 	Next
 	
+	; Write the file!
 	WriteInt(file, nrObject)
 	
 	For n = 0 To MaxObjectTypes - 1
 		
 		For k = 0 To objectsPlaced(n)
 			
-			WriteFloat(file,n)
-			WriteFloat(file,objectsPositionsX#(n))
-			WriteFloat(file,objectsPositionsY#(n))
-			WriteFloat(file,objectsPositionsZ#(n)) 
-			WriteInt(file,objectsRotationY(n))
-			WriteFloat(file,objectsScaleX#(n))
-			WriteFloat(file,objectsScaleY#(n))
-			WriteFloat(file,objectsScaleZ#(n))
+			WriteFloat(file, n)
+			WriteFloat(file, objectsPositionsX#(n))
+			WriteFloat(file, objectsPositionsY#(n))
+			WriteFloat(file, objectsPositionsZ#(n)) 
+			WriteFloat(file, objectsRotationY#(n))
+			WriteFloat(file, objectsScaleX#(n))
+			WriteFloat(file, objectsScaleY#(n))
+			WriteFloat(file, objectsScaleZ#(n))
 			
 		Next
 		
@@ -1156,67 +1163,80 @@ Function SaveObjects()
 	
 	CloseFile file
 	
+	DebugLog("DONE! (" + nrObject + " objects saved)")
+	
 End Function
 
+; Load scene objects data.
 Function LoadObjectData()
 	
-	If FileType(SavedDataPath$ + ObjectsData$)
-		
+	DebugLog("Loading objects data...")
+	
+	nrObjects = 0
+	
+	If (FileType(SavedDataPath$ + ObjectsData$))
 		
 		file = ReadFile(SavedDataPath$ + ObjectsData$)
 		
-		
+		; How many objects have you saved?
 		nrObjects = ReadInt(file)
 		
-		
-		
-		For n=0 To nrObjects
+		; Read!
+		For n = 0 To nrObjects - 1
 			
-			indexObject =ReadFloat(file) 
+			indexObject = ReadFloat(file) 
 			
 			objectsPlaced(indexObject) = objectsPlaced(indexObject) + 1
 			
 			objectsPositionsX#(n) = ReadFloat(file)
 			objectsPositionsY#(n) = ReadFloat(file) 
 			objectsPositionsZ#(n) = ReadFloat(file) 
-			objectsRotationY(n) = ReadInt(file) 
+			objectsRotationY(n) = ReadFloat(file) 
 			objectsScaleX#(n) =  ReadFloat(file) 
 			objectsScaleY#(n) =  ReadFloat(file) 
-			objectsScaleZ#(n) =  ReadFloat(file) 
-			
-			
+			objectsScaleZ#(n) =  ReadFloat(file)
 			
 		Next
 		
 		CloseFile file
 		
-		
 	EndIf
 	
+	DebugLog("DONE! (" + nrObject + " objects loaded)")
 	
 End Function
 
+; Save current heightmap.
 Function SaveHeightMap()
+	
+	DebugLog("Saving heightmap (" + selectedHeightmap + ")...")
 	
 	file = WriteFile(SavedDataPath$ + HeightmapData$)
 	
-	WriteInt(file,selectedHeightmap)
+	WriteInt(file, selectedHeightmap)
 	
 	CloseFile file
 	
+	DebugLog("DONE!")
+	
 End Function
 
+; Load an heightmap.
 Function LoadHeightMap()
 	
-	If FileType(SavedDataPath$ + HeightmapData$)
+	DebugLog("Loading heightmap...")
+	
+	If (FileType(SavedDataPath$ + HeightmapData$))
 	
 		file = ReadFile(SavedDataPath$ + HeightmapData$)
 	
 		selectedHeightmap = ReadInt(file)
 	
-		close file
+		CloseFile file
 	
 	EndIf
+	
+	DebugLog("DONE!")
 	
 End Function
 
@@ -1407,6 +1427,7 @@ Function SetGuiState(state)
 	If (state = 0)
 		
 		; Track editor.
+		GUI_Message(comWin, "settext", "Track editor")
 		
 		; Enable:
 		GUI_Message(spnHorizontalScaleFactor, "setenabled", True)
@@ -1424,6 +1445,7 @@ Function SetGuiState(state)
 	Else 
 		
 		; Scene editor.
+		GUI_Message(comWin, "settext", "Scene editor")
 		
 		; Disable:
 		GUI_Message(spnHorizontalScaleFactor, "setenabled", False)
@@ -1444,7 +1466,7 @@ End Function
 
 Function CreateWindow()
 	
-	comWin = GUI_CreateWindow(ScreenWidth - 280, 0, 280, ScreenHeight, "Commands", "", False, False, True, False)
+	comWin = GUI_CreateWindow(ScreenWidth - 280, 0, 280, ScreenHeight, "", "", False, False, True, False)
 	GUI_Message(comWin, "setLocked", True)
 	
 	; MENU
@@ -1722,24 +1744,24 @@ Function UpdateWindow()
 	xScale# = Int(GUI_Message(sldObjectXScale, "getvalue"))
 	yScale# = Int(GUI_Message(sldObjectYScale, "getvalue"))
 	zScale# = Int(GUI_Message(sldObjectZScale, "getvalue"))
-	rotation = Int(GUI_Message(sldObjectRotation, "getvalue"))
+	rotation# = Int(GUI_Message(sldObjectRotation, "getvalue"))
 	
 	GUI_Message(lblObjectXScaleValue, "settext", "" + xScale# + "x")
 	GUI_Message(lblObjectYScaleValue, "settext", "" + yScale# + "x")
 	GUI_Message(lblObjectZScaleValue, "settext", "" + zScale# + "x")
-	GUI_Message(lblObjectRotationValue, "settext", "" + rotation + "°")
+	GUI_Message(lblObjectRotationValue, "settext", "" + rotation# + "°")
 	
 	objectsScaleX#(selectedObject) = xScale#
 	objectsScaleY#(selectedObject) = yScale# 
 	objectsScaleZ#(selectedObject) = zScale#
 	
-	objectsRotationY(selectedObject) = rotation
+	objectsRotationY(selectedObject) = rotation#
 	
 End Function
 
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
-;~F#148#16A#1AA#1B5#1BF#1D5#1E8#1F1#1FE#205#20E#217#225#231#242#264#270#283#29B#2DA
-;~F#300#311#322#334#360#36D#40A#41F#44B#452#45D#4C9#4D0#4DB#4F1#51B#535#54E#555#576
-;~F#57C#5A4#5FB#604
+;~F#14A#16C#1AC#1B7#1C1#1D7#1EA#1F3#200#207#210#219#227#233#244#266#272#285#29D#2DC
+;~F#302#313#324#336#362#36F#40C#421#44D#454#45F#492#4DD#4E4#4EF#505#52F#549#562#569
+;~F#58A#590#5BA#611
 ;~C#Blitz3D
