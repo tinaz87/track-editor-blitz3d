@@ -278,9 +278,9 @@ Global lblObjectRotation, sldObjectRotation, lblObjectRotationValue
 ;Object part
 
 
-Dim objStringArray$(20)
+;Dim objStringArray$(20)
 
-Dim typeObject#(300)
+;Dim typeObject#(300)
 Dim aum_object(50)
 
 ;;Property Object
@@ -1445,6 +1445,8 @@ Function CreateWindow()
 	grpScene = GUI_CreateGroupBox(comWin, 10, 420, 270, 120, "Scene")
 	
 	lst3DObjects = GUI_CreateListBox(grpScene, 25, 20, 200, 60)
+	GUI_Message(lst3DObjects, "setselected", selectedObject)
+	
 	btnAddObject = GUI_CreateButton(grpScene, 25, 85, 200, 25, "Add object")
 	
 	; 3D OBJECTS - PROPERTIES
@@ -1480,21 +1482,61 @@ Function UpdateWindow()
 	; New.
 	If (GUI_AppEvent() = btnNew)
 		
-		; New method.
+		If (editorState = 0)
+			
+			; New track.
+			
+		Else 
+			
+			; New scene.
+			
+		EndIf 
 		
 	EndIf
 	
 	; Load
 	If (GUI_AppEvent() = btnLoad)
 		
-		; Load method.
+		If (editorState = 0)
+			
+			; Load track from file.
+			
+		Else 
+			
+			; Load scene from file.
+			
+		EndIf 
 		
 	EndIf
 	
 	; Save.
 	If (GUI_AppEvent() = btnSave)
 		
-		; Save method.
+		If (editorState = 0)
+			
+			; Save track.
+			
+		Else 
+			
+			; Save scene.
+			
+		EndIf
+		
+	EndIf 
+	
+	; Switch editor mode.
+	If (GUI_AppEvent() = btnSwitch)
+		
+		If (editorState = 0)
+			
+			; Switch to scene editor.
+			
+		Else 
+			
+			; Switch to track editor.
+			
+			
+		EndIf
 		
 	EndIf 
 	
@@ -1540,6 +1582,22 @@ Function UpdateWindow()
 		
 	EndIf 
 	
+	; SCENE
+	
+	; Get selected object.
+	If (selectedObject <> GUI_Message(lst3DObjects, "getselected")
+		
+		selectedObject = GUI_Message(lst3DObjects, "getselected")
+		
+	EndIf 
+	
+	; Add a new object.
+	If (GUI_AppEvent() = btnAddObject)
+		
+		addObject = 1
+		
+	EndIf
+	
 	; 3D OBJECTS
 	
 	xScale = Int(GUI_Message(sldObjectXScale, "getvalue"))
@@ -1559,10 +1617,12 @@ Function UpdateWindow()
 	typeObject#(numero_oggetto) = GUI_Message(lstboxObjects, "getselected")
 	
 	
+	
+	
 End Function
 
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
-;~F#178#19A#1E9#1F2#212#21D#226#233#23A#243#24C#25A#26D#28F#29A#2A8#2C0#2FF#325#336
+;~F#19A#1E9#1F2#1FC#212#21D#226#233#23A#243#24C#25A#26D#28F#29A#2A8#2C0#2FF#325#336
 ;~F#348#374#37E#419#42E#458#463#46C#473#47E#494#4BE#4D8#4F1#519#56B
 ;~C#Blitz3D
