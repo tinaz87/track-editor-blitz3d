@@ -24,6 +24,9 @@ SetBuffer BackBuffer()
 
 ; --- CONST VALUES ------------------------------------------------------------------
 
+; GUI skin.
+Const GUISkin$ = "MacOS"
+
 ; Max number of points allowed.
 Const MarkersNumber			= 5
 
@@ -42,12 +45,27 @@ Const InterpolationStep#	= 25.0
 ; Marker's selection ray.
 Const MarkerSelectionRay#	= 10.0
 
+; Heightmaps size.
+Const HeightmapsSize		= 512
+
+; Default terrain's horizontal scale.
+Const DefaultTerrainHScale	= 1
+
+; Default terrain's vertical scale.
+Const DefaultTerrainVScale	= 50
+
+; Default terrain's tile scale.
+Const DefaultTileScale		= 10
+
+; Max number of heightmaps available.
+Const MaxHeightmapsNumber	= 20
+
+; Max number of tiles available.
+Const MaxTilesNumber 		= 20
+
 ; Max loadable scene objects.
 Const MaxObjectTypes		= 50
 Const MaxObjectPerType 		= 20 
-
-; -----------------------------------------------------------------------------------
-
 
 ; -----------------------------------------------------------------------------------
 
@@ -63,12 +81,17 @@ Const IconsPath$		= ".\Media\Icons\"
 
 ; --- VARIABLES ---------------------------------------------------------------------
 
+Global running 				= True 
+
 ; Editor's state.
 ; 
 ; Legend:
 ;			0 = Track's editor
 ;			1 = Edit the scene
 Global editorState			= 0
+
+; Wireframe mode.
+Global wire					= 0
 
 ; Meshes of the markers.
 Dim markers(MarkersNumber)
@@ -153,44 +176,107 @@ Global renderTriangles		= 0
 ; Track's mesh.
 Global track				= 0
 
+; Terrain.
+Global terrain				= 0
+; Terrain's tile.
+Global terrainTile			= 0
+
+; Heighmaps
+Dim heightmaps(MaxHeightmapsNumber)	
+Dim heightmapsPaths$(MaxHeightmapsNumber)
+
+; Selected heightmap.
+Global selectedHeightmap	= 3
+
+; Tiles.
+Dim tiles(MaxTilesNumber)
+Dim tilesPaths$(MaxTilesNumber)
+
+; Selected tile.
+Global selectedTile			= 0
+
+; Terrain scales.
+Global terrainHScale#		= DefaultTerrainHScale
+Global terrainVScale#		= DefaultTerrainVScale
+
+; Scene objects.
+Dim objects(MaxObjectTypes, MaxObjectPerType)
+
+; Objects properties.
+Dim objectsPositionsX#(MaxObjectTypes * MaxObjectPerType)
+Dim objectsPositionsY#(MaxObjectTypes * MaxObjectPerType)
+Dim objectsPositionsZ#(MaxObjectTypes * MaxObjectPerType)
+
+Dim objectsScaleX#(MaxObjectTypes * MaxObjectPerType)
+Dim objectsScaleY#(MaxObjectTypes * MaxObjectPerType)
+Dim objectsScaleZ#(MaxObjectTypes * MaxObjectPerType)
+
+; Selected object.
+Global selectedObject		= 0
+
 ; -----------------------------------------------------------------------------------
 
 
 ; --- DEVIL GUI'S VARIABLES ---------------------------------------------------------
 
-; object rotation
-Global sldRotation
-Global lblRotation
+; Menu buttons.
+Global btnNew
+Global btnLoad
+Global btnSave
+Global btnSwitch
+Global btnExit
+
+; Track group.
+Global lblCurrentMarkerIndex
+Global lblNumMarkersPlaced
+
+; Terrain group.
+Global lstHeightmaps
+Global imgHeightmap
+Global lstTiles
+Global imgTile
+
+Global lblHorizontalScaleFactor
+Global spnHorizontalScaleFactor
+Global lblVerticalScaleFactor
+Global spnVerticalScaleFactor
+
+Global btnLoadTerrain
+
+; Scene group.
+Global lst3DObjects
+Global btnAddObject
+
+; Object properties group.
+Global lblObjectScale, sldObjectScale, lblObjectScaleValue
+Global lblObjectXScale, sldObjectXScale, lblObjectXScaleValue
+Global lblObjectYScale, sldObjectYScale, lblObjectYScaleValue
+Global lblObjectZScale, sldObjectZScale, lblObjectZScaleValue
+Global lblObjectRotation, sldObjectRotation, lblObjectRotationValue
+
+; -----------------------------------------------------------------------------------
 
 
-; heigthmap
-Global lblScaleHmX
-Global lblScaleHmY
-Global hmScaleWidth = 0
-Global hmScaleHeight = 0
-Global sldWidthHm
-Global sldHeightHm
-Global loadHeightmap = False
+;Global loadHeightmap = False
 
 ;button load heightmap with texture in scene 
-Global btnLH
+;Global btnLH
 
 ;button add object in scene
-Global btnObjSelected
+;Global btnObjSelected
 
 ; Texture part
-Dim textureArray(20)
+;Dim textureArray(20)
 ;Dim textureStringArray$(20)
-Dim texturePath$(20)
+;Dim texturePath$(20)
 
 ;Heightmap part
-Dim hmArray(20)
+;Dim hmArray(20)
 ;Dim hmStringArray$(20)
-Dim hmPath$(20)
+;Dim hmPath$(20)
 
 ;Object part
 
-Dim objects(MaxObjectTypes, MaxObjectPerType)
 
 Dim objStringArray$(20)
 
@@ -210,55 +296,32 @@ Dim dzObject#(300)
 ;Window Object
 
 ; listBox
-Global lstboxHM
-Global lstboxTexture
+;Global lstboxHM
+;Global lstboxTexture
 
-Global terrainGroup
-
-Global imgHM
-Global imgTx
-
-Global itemSelected
-Global itemSelectedTx
-
-Global lstboxObjects
-Global propertyObjectGroup
-
-;slider part
-Global sldG
-Global sldZ
-Global sldX
-Global sldY
-Global sldGvalue
-Global sldXvalue
-Global sldYvalue
-Global sldZvalue
-
-;label part
-Global lblScaleXText
-Global lblScaleYText
-Global lblScaleZText
+;Global lstboxObjects
 
 
-Global lblCurrentMarkerIndex
-Global lblNumMarkersPlaced
 
-Global icoBtnLoad
-Global icoBtnSave
-Global icoBtnNew
 
 Global addObject = 0
 
 
 
-Global lblScaleText
-Const firstSkin$ = "MacOS"
-GUI_InitGUI("dgui_1.6\Skins\" + firstSkin$ + ".skin")
+
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-Global numero_oggetto = 0
+
+;GUI_Message(btnObjSelected, "setenabled", False)
+;
+;GUI_Message(sldX, "setenabled", False)
+;GUI_Message(sldY, "setenabled", False)
+;GUI_Message(sldZ, "setenabled", False)
+;
+;GUI_Message(sldRotation, "setenabled", False)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -268,6 +331,9 @@ Global numero_oggetto = 0
 ; --- INIT --------------------------------------------------------------------------; 
 
 ; Init the GUI.
+InitGUI()
+
+; Create the window.
 CreateWindow()
 
 ; Load resources.
@@ -283,7 +349,10 @@ InitMarkers()
 InitAutoGenPoints()
 
 ; Create the plane.
-InitPlane()
+InitGround()
+
+; Init the terrain.
+InitTerrain()
 
 ; Create the camera.
 InitCamera()
@@ -307,7 +376,7 @@ MainLoop()
 ; Main loop.
 Function MainLoop()
 
-	While Not KeyDown(1)
+	While (running = True)
 		
 		Cls 
 		
@@ -432,22 +501,71 @@ Function LoadResources()
 	; Textures set.
 	tex = LoadTexture(TexturesPath$ + "base_0.png")
 	
-	
 	LoadObjects()
 	
 End Function 
 
+; Create a terrain using a specified heightmap.
+Function CreateTerrain()
+	
+	; Create the terrain.
+	terrain = LoadTerrain(heightmapsPaths$(selectedHeightmap))
+	
+	; Scale it.
+	ScaleEntity terrain, terrainHScale, terrainVScale, terrainHScale
+	
+	; Position it.
+	horizontalOffset = HeightmapsSize / 2 * terrainHScale
+	PositionEntity terrain, -horizontalOffset, 0, -horizontalOffset
+	
+	; Texturize it.
+	terrainTile = LoadTexture(tilesPaths$(selectedTile))
+	ScaleTexture terrainTile, DefaultTileScale, DefaultTileScale
+	EntityTexture terrain, terrainTile
+	
+	EntityPickMode terrain, 2
+	
+End Function
+
+; Destroy the terrain.
+Function DestroyTerrain()
+	
+	If (terrain > 0)
+		
+		FreeEntity terrain
+		
+	EndIf 
+	
+End Function
+
+; Destroy the current terrain and create a new one.
+Function LoadNewTerrain()
+	
+	DestroyTerrain()
+	
+	CreateTerrain()
+	
+End Function 
+	
 ; Create the plane.
-Function InitPlane()
+Function InitGround()
 	
 	;plane = CreateCube()
 	;ScaleEntity plane, 1000, 1, 1000
 	;EntityPickMode plane, 2  
 	
 	plane = CreatePlane()
+	PositionEntity plane, 0, -1, 0
 	EntityPickMode plane, 2
 	
 End Function 
+
+; Init the terrain.
+Function InitTerrain()
+	
+	CreateTerrain()
+	
+End Function
 
 ; Create a camera.
 Function InitCamera()
@@ -1064,7 +1182,7 @@ Function LoadObjects()
 		ext$ = Right(f$, 3)
 		If ((FileType(ObjectsPath$ + f$) = 1) And (f$ <> ".") And (f$ <> "..") And (ext$ = "3ds" Or ext$ = "b3d")) Then
 			filename$ = Left(f$, Len(f$) - 4)
-			GUI_Message(lstboxObjects, "AddItem", -1, filename$)
+			GUI_Message(lst3DObjects, "additem", -1, filename$)
 			file$ = ObjectsPath$ + f$
 			objects(index, 0) = LoadMesh(file$)
 			
@@ -1094,7 +1212,7 @@ Function LoadObjects()
 End Function
 
 ; Load all heightmap textures.
-Function LoadHeightmapTextures()
+Function LoadHeightmaps()
 	
 	index = 0
 	dir = ReadDir(HeightMapsPath$)
@@ -1105,10 +1223,10 @@ Function LoadHeightmapTextures()
 		If f$ = "" Then Exit
 		If ((FileType(HeightMapsPath$ + f$) = 1) And (f$ <> ".") And (f$ <> "..")) Then
 			filename$ = Left(f$, Len(f$) - 4)
-			GUI_Message(lstboxHM, "AddItem", -1, filename$)
+			GUI_Message(lstHeightmaps, "additem", -1, filename$)
 			file$ = HeightMapsPath$ + f$
-			hmArray(index) = LoadTexture(file$)
-			hmPath$(index) = file$
+			heightmaps(index) = LoadTexture(file$)
+			heightmapsPaths$(index) = file$
 			index = index + 1
 		EndIf
 		
@@ -1131,10 +1249,10 @@ Function LoadTiles()
 		If f$ = "" Then Exit
 		If ((FileType(TilesPath$ + f$) = 1) And (f$ <> ".") And (f$ <> "..")) Then
 			filename$ = Left(f$, Len(f$) - 4)
-			GUI_Message(lstboxTexture, "AddItem", -1, filename$)
+			GUI_Message(lstTiles, "additem", -1, filename$)
 			file$ = TilesPath$ + f$
-			textureArray(index) = LoadTexture(file$)
-			texturePath$(index) = file$
+			tiles(index) = LoadTexture(file$)
+			tilesPaths$(index) = file$
 			index = index + 1
 		EndIf
 		
@@ -1267,202 +1385,184 @@ End Function
 
 ; --- DEVIL GUI ---------------------------------------------------------------------
 
-
+Function InitGUI()
+	
+	GUI_InitGUI("dgui_1.6\Skins\" + GUISkin$ + ".skin")
+	
+End Function
 
 Function CreateWindow()
 	
 	comWin = GUI_CreateWindow(ScreenWidth - 280, 0, 280, ScreenHeight, "Commands", "", False, False, True, False)
-	;GUI_Message(comWin, "setLocked", True)
+	GUI_Message(comWin, "setLocked", True)
 	
-;	mnuFile = GUI_CreateMenu(comWin, "File")
-;	GUI_CreateMenu(mnuFile, "New")
-;	GUI_CreateMenu(mnuFile, "Open")
-;	GUI_CreateMenu(mnuFile, "Save")
-;	GUI_CreateMenu(mnuFile, "-")
-;	GUI_CreateMenu(mnuFile, "Exit")
-;	mnuEdit = GUI_CreateMenu(comWin, "Edit")
-;	GUI_CreateMenu(mnuEdit, "Cut")
-;	GUI_CreateMenu(mnuEdit, "Copy")
-;	GUI_CreateMenu(mnuEdit, "Paste")
-;	mnuHelp = GUI_CreateMenu(comWin, "?")
-;	GUI_CreateMenu(mnuHelp, "Help")
-;;	GUI_CreateMenu(mnuHelp, "About")
-;	
-;	btnLoad = GUI_CreateButton(comWin, 180, 10,90, 25, "Load Track")
-;	btnSave = GUI_CreateButton(comWin, 180, 40,90, 25, "Save Track")
-;	
-	; Track
+	; MENU
+	grpMenu = GUI_CreateGroupBox(comWin, 10, 5, 270, 50, "Menu")
 	
-	trackGroup = GUI_CreateGroupBox(comWin, 10, 5, 270, 50, "Menu")
+	btnNew = GUI_CreateButton(grpMenu, 15, 20, 45, 20,"", IconsPath$ + "new.png")
+	btnLoad = GUI_CreateButton(grpMenu, 65, 20, 45, 20,"", IconsPath$ + "open.png")
+	btnSave = GUI_CreateButton(grpMenu, 115, 20, 45, 20,"", IconsPath$ + "save.png")
+	btnSwitch = GUI_CreateButton(grpMenu, 165, 20, 45, 20, "", IconsPath$ + "switch.png")
+	btnExit = GUI_CreateButton(grpMenu, 215, 20, 45, 20, "", IconsPath$ + "exit.png")
 	
-	icoBtnNew = GUI_CreateButton(trackGroup, 10, 20, 40, 20,"", IconsPath$ + "filenew.png")
-	icoBtnSave = GUI_CreateButton(trackGroup, 55, 20, 40, 20,"", IconsPath$ + "save.png")
-	icoBtnLoad = GUI_CreateButton(trackGroup, 100, 20, 40, 20,"", IconsPath$ + "folder.png")
+	; TRACK
+	grpTrack = GUI_CreateGroupBox(comWin, 10, 55, 270, 55, "Track")
 	
+	lblCurrentMarkerIndex = GUI_CreateLabel(grpTrack, 25, 15, "Current marker index: " + currentMarkerIndex)
+	lblNumMarkersPlaced = GUI_CreateLabel(grpTrack, 25, 30, "Marker placed: " + numMarkersPlaced)
 	
+	; TERRAIN
+	grpTerrain = GUI_CreateGroupBox(comWin, 10, 110, 270, 310, "Terrain")
 	
+	; Heightmaps.
+	lstHeightmaps = GUI_CreateListBox(grpTerrain, 25, 20, 80, 100)
+	GUI_Message(lstHeightmaps, "setselected", selectedHeightmap)
 	
-	;GROUP TERRAIN
-	down = 40
+	LoadHeightmaps()
 	
-	;HEIGHTMAP
-	terrainGroup = GUI_CreateGroupBox(comWin, 10, 50, 270, 390, "Terrain")
-	lstboxHM = GUI_CreateListBox(terrainGroup,25,25 + down,80,100)
+	imgHeightmap = GUI_CreateImage(grpTerrain, 125, 20, 100, 100, heightmapsPaths$(selectedHeightmap))
 	
-	lblCurrentMarkerIndex = GUI_CreateLabel(terrainGroup, 25 , 20, "Current Marker Index	: " + currentMarkerIndex)
-	lblNumMarkersPlaced = GUI_CreateLabel(terrainGroup, 25 , 37, "Nr Marker Placed	: " + numMarkersPlaced )
-	
-	
-	LoadHeightmapTextures()
-	
-	imgHM = GUI_CreateImage(terrainGroup, 125, 25 + down, 100, 100, hmPath(itemSelected))
-	
-	;Scale Heightmap
-	
-	lblScale_X = GUI_CreateLabel(terrainGroup, 25 , 140 + down, "Scale Width")
-	sldWidthHm = GUI_CreateSlider(terrainGroup, 95 , 143 + down,100)
-	lblScaleHmX = GUI_CreateLabel(terrainGroup, 215 , 136 + down, ""+hmScaleWidth + "%")
-	
-	
-	lblScale_Y = GUI_CreateLabel(terrainGroup, 25 , 160 + down, "Scale Height")
-	sldHeightHm = GUI_CreateSlider(terrainGroup, 95 , 163 + down,100)
-	lblScaleHmY = GUI_CreateLabel(terrainGroup, 215 , 156 + down, ""+hmScaleHeight + "%")
-	
-	
-	;TEXTURE
-	
-	lstboxTexture = GUI_CreateListBox(terrainGroup,25,190 + down ,80,100)
+	; Tiles.	
+	lstTiles = GUI_CreateListBox(grpTerrain, 25, 130, 80, 100)
+	GUI_Message(lstTiles, "setselected", selectedTile)
 	
 	LoadTiles()
 	
-	imgTx = GUI_CreateImage(terrainGroup, 125, 190 + down , 100, 100, texturePath(itemSelectedTx))
+	imgTile = GUI_CreateImage(grpTerrain, 125, 130, 100, 100, tilesPaths$(selectedTile))
 	
-	btnLH = GUI_CreateButton(terrainGroup, 30, 310 + down ,190, 25, "Load HeightMap")
+	; Scale factors.
+	lblHorizontalScaleFactor = GUI_CreateLabel(grpTerrain, 25, 245, "H:")
+	spnHorizontalScaleFactor = GUI_CreateSpinner(grpTerrain, 50, 240, 75, DefaultTerrainHScale, 1, 100)
 	
-	;GROUP OBJECT
+	lblVerticalScaleFactor = GUI_CreateLabel(grpTerrain, 130, 245, "V:")
+	spnVerticalScaleFactor = GUI_CreateSpinner(grpTerrain, 150, 240, 75, DefaultTerrainVScale, 1, 100)
 	
-	propertyObjectGroup = GUI_CreateGroupBox(comWin, 10, 445, 270, 250, "Property Object")
+	; Load a specified terrain.
+	btnLoadTerrain = GUI_CreateButton(grpTerrain, 25, 270, 205, 25, "Load Terrain")
 	
-	lstboxObjects = GUI_CreateListBox(propertyObjectGroup,30,20,220,60)
+	; 3D OBJECTS - SCENE
 	
-	btnObjSelected = GUI_CreateButton(propertyObjectGroup, 30, 90,60, 25, "Add Object")
+	grpScene = GUI_CreateGroupBox(comWin, 10, 420, 270, 120, "Scene")
 	
-	lblScaleX = GUI_CreateLabel(propertyObjectGroup, 33, 120, "Scale_X")
-	sldX = GUI_CreateSlider(propertyObjectGroup, 35 , 140 ,150)
-	lblScaleXText = GUI_CreateLabel(propertyObjectGroup, 190 , 133, "0%")
+	lst3DObjects = GUI_CreateListBox(grpScene, 25, 20, 200, 60)
+	btnAddObject = GUI_CreateButton(grpScene, 25, 85, 200, 25, "Add object")
 	
-	lblScaleY = GUI_CreateLabel(propertyObjectGroup, 33, 150, "Scale_Y")
-	sldY = GUI_CreateSlider(propertyObjectGroup, 35 , 170 ,150)
-	lblScaleYText = GUI_CreateLabel(propertyObjectGroup, 190 , 163, "0%")
+	; 3D OBJECTS - PROPERTIES
 	
-	lblScaleZ = GUI_CreateLabel(propertyObjectGroup, 33, 180, "Scale_Z")
-	sldZ = GUI_CreateSlider(propertyObjectGroup, 35 , 200 ,150)
-	lblScaleZText = GUI_CreateLabel(propertyObjectGroup, 190 , 193, "0%")
+	grpObjectProperties = GUI_CreateGroupBox(comWin, 10, 540, 270, 150, "Object Properties")
 	
-	lblRot = GUI_CreateLabel(propertyObjectGroup, 33, 210, "Rotation")
-	sldRotation = GUI_CreateSlider(propertyObjectGroup, 35 , 230 ,150,0,0,359)
-	lblRotation = GUI_CreateLabel(propertyObjectGroup, 188 , 223, "0°")
+	lblObjectScale = GUI_CreateLabel(grpObjectProperties, 25, 20, "Scale")
+	sldObjectScale = GUI_CreateSlider(grpObjectProperties, 75, 25, 140, 1, 1, 100)
+	lblObjectScaleValue = GUI_CreateLabel(grpObjectProperties, 220, 20, "1.0x")
 	
+	lblObjectXScale = GUI_CreateLabel(grpObjectProperties, 25, 45, "X Scale")
+	sldObjectXScale = GUI_CreateSlider(grpObjectProperties, 75, 50, 140, 1, 1, 100)
+	lblObjectXScaleValue = GUI_CreateLabel(grpObjectProperties, 220, 45, "1.0x")
 	
-	GUI_Message(btnObjSelected, "setenabled", False)
+	lblObjectYScale = GUI_CreateLabel(grpObjectProperties, 25, 70, "Y Scale")
+	sldObjectYScale = GUI_CreateSlider(grpObjectProperties, 75, 75, 140, 1, 1, 100)
+	lblObjectYScaleValue = GUI_CreateLabel(grpObjectProperties, 220, 70, "1.0x")
 	
-	GUI_Message(sldX, "setenabled", False)
-	GUI_Message(sldY, "setenabled", False)
-	GUI_Message(sldZ, "setenabled", False)
+	lblObjectZScale = GUI_CreateLabel(grpObjectProperties, 25, 95, "Z Scale")
+	sldObjectZScale = GUI_CreateSlider(grpObjectProperties, 75, 100, 140, 1, 1, 100)
+	lblObjectZScaleValue = GUI_CreateLabel(grpObjectProperties, 220, 95, "1.0x")
 	
-	GUI_Message(sldRotation, "setenabled", False)
+	lblObjectRotation = GUI_CreateLabel(grpObjectProperties, 25, 120, "Rotation")
+	sldObjectRotation = GUI_CreateSlider(grpObjectProperties, 75, 125, 140, 0, 0, 360)
+	lblObjectRotationValue = GUI_CreateLabel(grpObjectProperties, 220, 120, "0°")
 	
 End Function
 
 Function UpdateWindow()
 	
-	If icoBtnLoad = GUI_AppEvent()
-		;LOAD TRACK
-	EndIf
+	; MENU
 	
-	If icoBtnSave = GUI_AppEvent()
-		;SAVE TRACK
-	EndIf
-	
-	If icoBtnNew = GUI_AppEvent()
-		;DO SOMETHING
-	EndIf
-	
-	If btnObjSelected = GUI_AppEvent()
-		;DO SOMETHING
-	EndIf
-	
-	; TERRAIN GROUP
-	
-	;Heightmap section
-	hmScaleWidth = Int(GUI_Message(sldWidthHm, "GetValue"))
-	hmScaleHeight = Int(GUI_Message(sldHeightHm, "GetValue"))
-	
-	If btnLH = GUI_AppEvent()
-		loadHeightmap = True
-	EndIf
-	
-	
-	GUI_Message(lblScaleHmX, "SetText", "" + hmScaleWidth + "%")
-	GUI_Message(lblScaleHmY, "SetText", "" + hmScaleHeight + "%")
-	
-	;insert string in listbox
-	If itemSelected<>GUI_Message(lstboxHM, "getselected")
+	; New.
+	If (GUI_AppEvent() = btnNew)
 		
-		itemSelected = GUI_Message(lstboxHM, "getselected")
-		GUI_Message(imgHM,"setimage",hmPath(itemSelected))
+		; New method.
 		
 	EndIf
 	
-	If itemSelectedTx<>GUI_Message(lstboxTexture, "getselected")
+	; Load
+	If (GUI_AppEvent() = btnLoad)
 		
-		itemSelectedTx = GUI_Message(lstboxTexture, "getselected")
-		GUI_Message(imgTx,"setimage",texturePath(itemSelectedTx))
+		; Load method.
 		
 	EndIf
 	
+	; Save.
+	If (GUI_AppEvent() = btnSave)
+		
+		; Save method.
+		
+	EndIf 
 	
-	; OBJECT GROUP
+	; Exit.
+	If (GUI_AppEvent() = btnExit)
+		
+		running = False
+		
+	EndIf
 	
+	; TRACK
 	
-	xscale = Int(GUI_Message(sldX, "GetValue"))
-	yscale = Int(GUI_Message(sldY, "GetValue"))
-	zscale = Int(GUI_Message(sldZ, "GetValue"))
-	rot = Int(GUI_Message(sldRotation, "GetValue"))
+	GUI_Message(lblCurrentMarkerIndex, "settext", "Current marker index: " + currentMarkerIndex)
+	GUI_Message(lblNumMarkersPlaced, "settext", "Marker placed: " + numMarkersPlaced)
 	
+	; TERRAIN 
 	
+	; Get selected heightmap.
+	If (selectedHeightmap <> GUI_Message(lstHeightmaps, "getselected"))
+		
+		selectedHeightmap = GUI_Message(lstHeightmaps, "getselected")
+		GUI_Message(imgHeightmap, "setimage", heightmapsPaths$(selectedHeightmap))
+		
+	EndIf 
 	
-	GUI_Message(lblScaleZText, "SetText", "" + zscale + "%")
-	GUI_Message(lblScaleXText, "SetText", "" + xscale + "%")
-	GUI_Message(lblScaleYText, "SetText", "" + yscale + "%")
-	GUI_Message(lblRotation, "SetText", "" + rot + "°")
+	; Update scale values reading them from the spinners.
+	terrainHScale = Int(GUI_Message(spnHorizontalScaleFactor, "getvalue"))
+	terrainVScale = Int(GUI_Message(spnVerticalScaleFactor, "getvalue"))
+	
+	; Get selected tile.
+	If (selectedTile <> GUI_Message(lstTiles, "getselected"))
+		
+		selectedTile = GUI_Message(lstTiles, "getselected")
+		GUI_Message(imgTile, "setimage", tilesPaths$(selectedTile))
+		
+	EndIf
+	
+	; Load the terrain.
+	If (GUI_AppEvent() = btnLoadTerrain)
+		
+		; Load terrain.
+		LoadNewTerrain()
+		
+	EndIf 
+	
+	; 3D OBJECTS
+	
+	xScale = Int(GUI_Message(sldObjectXScale, "getvalue"))
+	yScale = Int(GUI_Message(sldObjectYScale, "getvalue"))
+	zScale = Int(GUI_Message(sldObjectZScale, "getvalue"))
+	rotation = Int(GUI_Message(sldObjectRotation, "getvalue"))
+	
+	GUI_Message(lblObjectXScaleValue, "settext", "" + xScale + ".0x")
+	GUI_Message(lblObjectYScaleValue, "settext", "" + yScale + ".0x")
+	GUI_Message(lblObjectZScaleValue, "settext", "" + zScale + ".0x")
+	GUI_Message(lblObjectRotationValue, "settext", "" + rotation + "°")
 	
 	dxObject#(numero_oggetto) = xscale
 	dyObject#(numero_oggetto) = yscale
 	dzObject#(numero_oggetto) = zscale
 	
-	
-	GUI_Message(lblCurrentMarkerIndex, "SetText", "Current Marker Index	: " + currentMarkerIndex )
-	GUI_Message(lblNumMarkersPlaced, "SetText", "Nr Marker Placed			: " + numMarkersPlaced )
-	
 	typeObject#(numero_oggetto) = GUI_Message(lstboxObjects, "getselected")
-	
 	
 	
 End Function
 
 ; -----------------------------------------------------------------------------------
-
-;Global ground = LoadTerrain("heightmap.jpg")
-;ScaleEntity ground,5,50,5
-;PositionEntity ground,-0,-1,-0
-;Global tex = LoadTexture("terr_dirt-grass.jpg")
-;ScaleTexture tex,1,1
-;EntityTexture ground,tex
-;EntityPickMode ground,2
-;PositionEntity camera,10,50,10
-;PointEntity camera,ground
 ;~IDEal Editor Parameters:
-;~F#133#155#1A4#1B8#1C4#1CD#1D6#1E4#1F7#219#224#232#24A#289#2AF#2C0#2D2#2FE#308#3A3
-;~F#3B8#3E2#3ED#3F6#3FD#408#448#462#47B#4A3
+;~F#178#19A#1E9#1F2#212#21D#226#233#23A#243#24C#25A#26D#28F#29A#2A8#2C0#2FF#325#336
+;~F#348#374#37E#419#42E#458#463#46C#473#47E#494#4BE#4D8#4F1#519#56B
 ;~C#Blitz3D
