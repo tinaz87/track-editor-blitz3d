@@ -1746,7 +1746,8 @@ Select GUI_ParseID(gad)
 			Case "getenabled"
 				Return spn\enabled
 			Case "setenabled"
-				spn\enabled = False
+				spn\enabled = p1$
+				;spn\enabled = False
 			Case "setinc"
 				spn\inc# = p1$
 			Case "getinc"
@@ -3021,3 +3022,5 @@ item$ = GUI_Parse(path$, cnt_items - 2, "\")
 ln = Len(item$)
 Return Left(path$, Len(path$) - ln - 1)
 End Function
+;~IDEal Editor Parameters:
+;~C#Blitz3D

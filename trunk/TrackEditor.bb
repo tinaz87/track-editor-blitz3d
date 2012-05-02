@@ -88,7 +88,8 @@ Const IconsPath$		= ".\Media\Icons\"
 
 Const TrackData$		= "Track.txt"
 Const Track3DS$			= "Track.3ds"
-Const SceneData$		= "Scene.txt"
+Const HeightmapData$	= "HeigthmapData.txt"
+Const ObjectsData$		= "ObjectsData.txt"
 
 ; -----------------------------------------------------------------------------------
 
@@ -225,7 +226,7 @@ Dim objectsScaleX#(MaxObjectTypes * MaxObjectPerType)
 Dim objectsScaleY#(MaxObjectTypes * MaxObjectPerType)
 Dim objectsScaleZ#(MaxObjectTypes * MaxObjectPerType)
 
-Dim objectsRotationY#(MaxObjectTypes * MaxObjectPerType)
+Dim objectsRotationY(MaxObjectTypes * MaxObjectPerType)
 
 ; Selected type.
 Global selectedType			= 0
@@ -1028,6 +1029,8 @@ Function TrackEditorUpdate()
 	
 End Function 
 
+; -----------------------------------------------------------------------------------
+
 ; Save the current track to file.
 Function SaveMarkers()
 	
@@ -1117,6 +1120,103 @@ Function SaveTrack()
 	SaveMarkers()
 	
 	Save3DS()
+	
+End Function
+
+Function SaveObjects()
+	
+	file = WriteFile(SavedDataPath$ + ObjectsData$)
+	
+	nrObject = 0
+	
+	For n = 0 To MaxObjectTypes - 1
+		
+		nrObject = nrObject + objectsPlaced(n)
+		
+	Next
+	
+	WriteInt(file, nrObject)
+	
+	For n = 0 To MaxObjectTypes - 1
+		
+		For k = 0 To objectsPlaced(n)
+			
+			WriteFloat(file,n)
+			WriteFloat(file,objectsPositionsX#(n))
+			WriteFloat(file,objectsPositionsY#(n))
+			WriteFloat(file,objectsPositionsZ#(n)) 
+			WriteInt(file,objectsRotationY(n))
+			WriteFloat(file,objectsScaleX#(n))
+			WriteFloat(file,objectsScaleY#(n))
+			WriteFloat(file,objectsScaleZ#(n))
+			
+		Next
+		
+	Next
+	
+	CloseFile file
+	
+End Function
+
+Function LoadObjectData()
+	
+	If FileType(SavedDataPath$ + ObjectsData$)
+		
+		
+		file = ReadFile(SavedDataPath$ + ObjectsData$)
+		
+		
+		nrObjects = ReadInt(file)
+		
+		
+		
+		For n=0 To nrObjects
+			
+			indexObject =ReadFloat(file) 
+			
+			objectsPlaced(indexObject) = objectsPlaced(indexObject) + 1
+			
+			objectsPositionsX#(n) = ReadFloat(file)
+			objectsPositionsY#(n) = ReadFloat(file) 
+			objectsPositionsZ#(n) = ReadFloat(file) 
+			objectsRotationY(n) = ReadInt(file) 
+			objectsScaleX#(n) =  ReadFloat(file) 
+			objectsScaleY#(n) =  ReadFloat(file) 
+			objectsScaleZ#(n) =  ReadFloat(file) 
+			
+			
+			
+		Next
+		
+		CloseFile file
+		
+		
+	EndIf
+	
+	
+End Function
+
+Function SaveHeightMap()
+	
+	file = WriteFile(SavedDataPath$ + HeightmapData$)
+	
+	WriteInt(file,selectedHeightmap)
+	
+	CloseFile file
+	
+End Function
+
+Function LoadHeightMap()
+	
+	If FileType(SavedDataPath$ + HeightmapData$)
+	
+		file = ReadFile(SavedDataPath$ + HeightmapData$)
+	
+		selectedHeightmap = ReadInt(file)
+	
+		close file
+	
+	EndIf
 	
 End Function
 
@@ -1275,7 +1375,7 @@ Function posObjects()
 		
 		PositionEntity currentObject, PickedX#(), PickedY#(), PickedZ#()
 		
-		RotateEntity currentObject, 0, objectsRotationY#(selectedObject), 0
+		RotateEntity currentObject, 0, objectsRotationY(selectedObject), 0
 		
 		If MouseDown(3) ; Mouse Wheel Button
 			
@@ -1535,9 +1635,6 @@ Function UpdateWindow()
 			; Set editor's state.
 			editorState = 1
 			
-			; Enable/disable GUI elements.
-			SetGuiState(editorState)
-			
 		Else 
 			
 			; Switch to track editor.
@@ -1545,6 +1642,9 @@ Function UpdateWindow()
 			editorState = 0
 			
 		EndIf
+		
+		; Enable/disable GUI elements.
+		SetGuiState(editorState)
 		
 	EndIf 
 	
@@ -1622,23 +1722,24 @@ Function UpdateWindow()
 	xScale# = Int(GUI_Message(sldObjectXScale, "getvalue"))
 	yScale# = Int(GUI_Message(sldObjectYScale, "getvalue"))
 	zScale# = Int(GUI_Message(sldObjectZScale, "getvalue"))
-	rotation# = Int(GUI_Message(sldObjectRotation, "getvalue"))
+	rotation = Int(GUI_Message(sldObjectRotation, "getvalue"))
 	
-	GUI_Message(lblObjectXScaleValue, "settext", "" + xScale# + ".0x")
-	GUI_Message(lblObjectYScaleValue, "settext", "" + yScale# + ".0x")
-	GUI_Message(lblObjectZScaleValue, "settext", "" + zScale# + ".0x")
-	GUI_Message(lblObjectRotationValue, "settext", "" + rotation# + "°")
+	GUI_Message(lblObjectXScaleValue, "settext", "" + xScale# + "x")
+	GUI_Message(lblObjectYScaleValue, "settext", "" + yScale# + "x")
+	GUI_Message(lblObjectZScaleValue, "settext", "" + zScale# + "x")
+	GUI_Message(lblObjectRotationValue, "settext", "" + rotation + "°")
 	
 	objectsScaleX#(selectedObject) = xScale#
 	objectsScaleY#(selectedObject) = yScale# 
 	objectsScaleZ#(selectedObject) = zScale#
 	
-	objectsRotationY#(selectedObject) = rotation#
+	objectsRotationY(selectedObject) = rotation
 	
 End Function
 
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
-;~F#147#169#1A9#1B4#1BE#1D4#1E7#1F0#1FD#204#20D#216#224#230#241#263#26F#282#29A#2D9
-;~F#2FF#310#321#333#35F#36C#407#41C#465#46C#477#48D#4B7#4D1#4EA#4F1#512#597#5A0
+;~F#148#16A#1AA#1B5#1BF#1D5#1E8#1F1#1FE#205#20E#217#225#231#242#264#270#283#29B#2DA
+;~F#300#311#322#334#360#36D#40A#41F#44B#452#45D#4C9#4D0#4DB#4F1#51B#535#54E#555#576
+;~F#57C#5A4#5FB#604
 ;~C#Blitz3D
