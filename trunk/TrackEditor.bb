@@ -1144,11 +1144,13 @@ Function SaveObjects()
 	; Write the file!
 	WriteInt(file, nrObject)
 	
+	
+	
 	For n = 0 To MaxObjectTypes - 1
 		
 		For k = 0 To objectsPlaced(n) - 1
 			
-			WriteFloat(file, n)
+			WriteInt(file, n)
 			WriteFloat(file, objectsPositionsX#(n,k))
 			WriteFloat(file, objectsPositionsY#(n,k))
 			WriteFloat(file, objectsPositionsZ#(n,k)) 
@@ -1172,7 +1174,7 @@ Function LoadObjectData()
 	
 	DebugLog("Loading objects data...")
 	
-	nrObjects = 0
+	Local nrObjects = 0
 	
 	If (FileType(SavedDataPath$ + ObjectsData$))
 		
@@ -1184,9 +1186,14 @@ Function LoadObjectData()
 		; Read!
 		For n = 0 To nrObjects - 1
 			
-			indexObject = ReadFloat(file) 
+			
+			indexObject = ReadInt(file) 
 			
 			indexObjectPlaced = objectsPlaced(indexObject)
+			
+			currentObject = objects(indexObject,indexObjectPlaced)
+			
+			
 			
 			objectsPositionsX#(n,indexObjectPlaced) = ReadFloat(file)
 			objectsPositionsY#(n,indexObjectPlaced) = ReadFloat(file) 
@@ -1197,6 +1204,14 @@ Function LoadObjectData()
 			objectsScaleZ#(n,indexObjectPlaced) =  ReadFloat(file)
 			
 			
+			PositionEntity currentObject,objectsPositionsX#(n,indexObjectPlaced),objectsPositionsY#(n,indexObjectPlaced),objectsPositionsZ#(n,indexObjectPlaced)
+			
+			ScaleEntity currentObject,objectsScaleX#(n,indexObjectPlaced),objectsScaleY#(n,indexObjectPlaced),objectsScaleZ#(n,indexObjectPlaced)
+			
+			RotateEntity currentObject,0,objectsRotationY(n,indexObjectPlaced),0
+			
+			
+			
 			objectsPlaced(indexObject) = objectsPlaced(indexObject) + 1
 		Next
 		
@@ -1204,7 +1219,7 @@ Function LoadObjectData()
 		
 	EndIf
 	
-	DebugLog("DONE! (" + nrObject + " objects loaded)")
+	DebugLog("DONE! (" + nrObjects + " objects loaded)")
 	
 End Function
 
@@ -1766,6 +1781,6 @@ End Function
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
 ;~F#14A#16C#1AC#1B7#1C1#1D7#1EA#1F3#200#207#210#219#227#233#244#266#272#285#29D#2DC
-;~F#302#313#324#336#362#36F#40C#421#44D#454#45F#4DF#4E6#4F1#507#531#54B#564#58C#592
-;~F#5BC#613
+;~F#302#313#324#336#362#36F#40C#421#44D#454#45F#4EE#4F5#500#516#540#55A#573#59B#5A1
+;~F#5CB#622
 ;~C#Blitz3D
