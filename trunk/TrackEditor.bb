@@ -202,6 +202,9 @@ Global terrainVScale#		= DefaultTerrainVScale
 ; Scene objects.
 Dim objects(MaxObjectTypes, MaxObjectPerType)
 
+; Objects placed.
+Dim objectsPlaced(MaxObjectTypes)
+
 ; Objects properties.
 Dim objectsPositionsX#(MaxObjectTypes * MaxObjectPerType)
 Dim objectsPositionsY#(MaxObjectTypes * MaxObjectPerType)
@@ -213,6 +216,9 @@ Dim objectsScaleZ#(MaxObjectTypes * MaxObjectPerType)
 
 ; Selected object.
 Global selectedObject		= 0
+
+; If you're adding a new object to the scene, say 'true'.
+Global addObject 			= 0
 
 ; -----------------------------------------------------------------------------------
 
@@ -257,78 +263,7 @@ Global lblObjectRotation, sldObjectRotation, lblObjectRotationValue
 ; -----------------------------------------------------------------------------------
 
 
-;Global loadHeightmap = False
-
-;button load heightmap with texture in scene 
-;Global btnLH
-
-;button add object in scene
-;Global btnObjSelected
-
-; Texture part
-;Dim textureArray(20)
-;Dim textureStringArray$(20)
-;Dim texturePath$(20)
-
-;Heightmap part
-;Dim hmArray(20)
-;Dim hmStringArray$(20)
-;Dim hmPath$(20)
-
-;Object part
-
-
-;Dim objStringArray$(20)
-
-;Dim typeObject#(300)
-Dim aum_object(50)
-
-;;Property Object
-Dim xObject#(300)
-Dim yObject#(300)
-Dim zObject#(300)
-
-Dim rotObject#(300)
-Dim dxObject#(300)
-Dim dyObject#(300)
-Dim dzObject#(300)
-
-;Window Object
-
-; listBox
-;Global lstboxHM
-;Global lstboxTexture
-
-;Global lstboxObjects
-
-
-
-
-Global addObject = 0
-
-
-
-
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-;GUI_Message(btnObjSelected, "setenabled", False)
-;
-;GUI_Message(sldX, "setenabled", False)
-;GUI_Message(sldY, "setenabled", False)
-;GUI_Message(sldZ, "setenabled", False)
-;
-;GUI_Message(sldRotation, "setenabled", False)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-; -----------------------------------------------------------------------------------
-
-
-; --- INIT --------------------------------------------------------------------------; 
+; --- INIT --------------------------------------------------------------------------
 
 ; Init the GUI.
 InitGUI()
@@ -804,6 +739,23 @@ Function AddMarker()
 	
 End Function
 
+; Reset markers.
+Function ResetMarkersData()
+	
+	numMarkersPlaced 	= 0
+	
+	currentMarkerIndex 	= -1
+	
+	For n = 0 To MarkersNumber - 1
+		
+		markersCoordX#(n) = 0
+		markersCoordY#(n) = 0
+		markersCoordZ#(n) = 0
+		
+	Next
+	
+End Function
+	
 ; Reset values.
 Function ResetValues()
 	
@@ -1099,6 +1051,8 @@ Function LoadMarkers()
 		
 		numMarkersPlaced = loadedPoints
 		
+		currentMarkerIndex = loadedPoints - 1
+		
 		CloseFile inFile
 		
 		; Reset values.
@@ -1267,118 +1221,76 @@ End Function
 ; Update objects.
 Function UpdateObjects()
 	
-	For n = 0 To maxObjecttype - 1
-		
-		aum_object(n) = -1 ; contatore dell'oggetto di quel tipo = 1
-		
-		If (objects(n,0) > 0) ; se l'oggetto esiste
-			For k=0 To maxObjectXtype
-				PositionEntity objects(n,k),10000,0,0 ; posiziono inizialmente gli oggetti molto lontani (virtualmente all'infinito)
-				EntityColor objects(n,k),255,255,255
-			Next
-		EndIf
-	Next
-	
-	For n = 0 To 299		
-		If xObject#(n) <>0
-			
-			tipo=typeObject#(n)
-			
-			If objects(tipo,0)>0
-				aum_object(tipo)=aum_object(tipo)+1
-				
-				If aum_object(tipo) > maxObjectXtype Then aum_object(tipo) = maxObjectXtype
-				
-				PositionEntity objects(tipo,aum_object(tipo)),xObject#(n),yObject#(n),zObject#(n)
-				
-				RotateEntity objects(tipo,aum_object(tipo)),0,rotObject#(n),0
-				
-				ScaleEntity objects(tipo,aum_object(tipo)),1+dxObject#(n),1+dyObject#(n),1+dzObject#(n)
-				
-				If n=numero_oggetto
-					EntityColor objects(tipo,aum_object(tipo)),155+Rnd(100),155,155
-				EndIf
-			EndIf
-		EndIf
-	Next
+;	For n = 0 To maxObjecttype - 1
+;		
+;		aum_object(n) = -1 ; contatore dell'oggetto di quel tipo = 1
+;		
+;		If (objects(n,0) > 0) ; se l'oggetto esiste
+;			For k=0 To maxObjectXtype
+;				PositionEntity objects(n,k),10000,0,0 ; posiziono inizialmente gli oggetti molto lontani (virtualmente all'infinito)
+;				EntityColor objects(n,k),255,255,255
+;			Next
+;		EndIf
+;	Next
+;	
+;	For n = 0 To 299		
+;		If xObject#(n) <>0
+;			
+;			tipo=typeObject#(n)
+;			
+;			If objects(tipo,0)>0
+;				aum_object(tipo)=aum_object(tipo)+1
+;				
+;				If aum_object(tipo) > maxObjectXtype Then aum_object(tipo) = maxObjectXtype
+;				
+;				PositionEntity objects(tipo,aum_object(tipo)),xObject#(n),yObject#(n),zObject#(n)
+;				
+;				RotateEntity objects(tipo,aum_object(tipo)),0,rotObject#(n),0
+;				
+;				ScaleEntity objects(tipo,aum_object(tipo)),1+dxObject#(n),1+dyObject#(n),1+dzObject#(n)
+;				
+;				If n=numero_oggetto
+;					EntityColor objects(tipo,aum_object(tipo)),155+Rnd(100),155,155
+;				EndIf
+;			EndIf
+;		EndIf
+;	Next
 	
 End Function
 
 ; Position objects.
 Function posObjects()
 	
-	If KeyDown(211) Or KeyDown(14) ; se viene premuto CANC o BACK vengono azzerati gli oggetti
-		xObject#(numero_oggetto) = 0
-	EndIf
-	
-	If addObject = 1 
-		
-		CameraPick(camera,MouseX(),MouseY())
-		;TerrainHeight(plane,PickedX(),PickedZ())
-		xObject#(numero_oggetto)=PickedX#()
-		yObject#(numero_oggetto)=PickedY#()
-		zObject#(numero_oggetto)=PickedZ#()
-		DebugLog "X: "+PickedX#()
-		DebugLog "Y: "+PickedY#()
-		DebugLog "Z: "+PickedZ#()
-		
-		If MouseDown(2)
-			
-			For n=0 To 1000
-				If xObject#(n)=0
-					numero_oggetto = n
-					
-				;DebugLog numero_oggetto
-					n = 100000
-				EndIf
-			Next
-			addObject = 0
-			
-		EndIf
-		
-	EndIf
-	
-;	;If KeyDown(59) ; tasto F1 ; cerca il primo oggetto disponibile
-;	mouse_wheel = MouseZSpeed()
-;	
-;	If mouse_wheel = 1
-;		
-;		For n=0 To 1000
-;			If xObject#(n)=0
-;				numero_oggetto = n
-;				
-;				;DebugLog numero_oggetto
-;				n = 100000
-;			EndIf
-;		Next
-;	EndIf
-;	
-;	;EndIf
-;	
 ;	If KeyDown(211) Or KeyDown(14) ; se viene premuto CANC o BACK vengono azzerati gli oggetti
 ;		xObject#(numero_oggetto) = 0
 ;	EndIf
 ;	
-;	If KeyDown(157) And MouseDown(1) ; se premo CTRLDX e MOUSE SX
+;	If addObject = 1 
 ;		
-;		valorecampick = CameraPick(camera,MouseX(),MouseY()) ; prendo il valore di dove clicco col mouse
+;		CameraPick(camera,MouseX(),MouseY())
+;		;TerrainHeight(plane,PickedX(),PickedZ())
+;		xObject#(numero_oggetto)=PickedX#()
+;		yObject#(numero_oggetto)=PickedY#()
+;		zObject#(numero_oggetto)=PickedZ#()
+;		DebugLog "X: "+PickedX#()
+;		DebugLog "Y: "+PickedY#()
+;		DebugLog "Z: "+PickedZ#()
 ;		
-;		If valorecampick > 0 ; se è un valore valido, creo l'oggetto in quel punto
-;			xObject#(numero_oggetto)=PickedX#()
-;			yObject#(numero_oggetto)=PickedY#()
-;			zObject#(numero_oggetto)=PickedZ#()
+;		If MouseDown(2)
 ;			
-;			If yObject#(numero_oggetto) > 2 ; se l'oggetto è da attaccare in verticale (non è attaccato al terreno)
-;				dnx#=PickedNX#() ; prende la normale nell'asse X
-;				dny#=PickedNY#() ; prende la normale nell'asse Y
-;				dnz#=PickedNZ#() ; prende la normale nell'asse Z
-;				xObject#(numero_oggetto)=xObject#(numero_oggetto) + dnx# ; mi sposto dalla normale in modo da evitare z-fighting
-;				yObject#(numero_oggetto)=yObject#(numero_oggetto) + dny#
-;				zObject#(numero_oggetto)=zObject#(numero_oggetto) + dnz#
-;			EndIf
+;			For n=0 To 1000
+;				If xObject#(n)=0
+;					numero_oggetto = n
+;					
+;				;DebugLog numero_oggetto
+;					n = 100000
+;				EndIf
+;			Next
+;			addObject = 0
+;			
 ;		EndIf
+;		
 ;	EndIf
-	
 	
 End Function
 
@@ -1488,6 +1400,15 @@ Function UpdateWindow()
 			
 			; New track.
 			
+			; Reset data.
+			ResetMarkersData()
+			
+			; Reset values.
+			ResetValues()
+			
+			; Update the track.
+			updateNeeded = True
+			
 		Else 
 			
 			; New scene.
@@ -1502,6 +1423,7 @@ Function UpdateWindow()
 		If (editorState = 0)
 			
 			; Load track from file.
+			LoadMarkers()
 			
 		Else 
 			
@@ -1517,6 +1439,7 @@ Function UpdateWindow()
 		If (editorState = 0)
 			
 			; Save track.
+			SaveMarkers()
 			
 		Else 
 			
@@ -1587,11 +1510,8 @@ Function UpdateWindow()
 	; SCENE
 	
 	; Get selected object.
-	If (selectedObject <> GUI_Message(lst3DObjects, "getselected")
-		
-		selectedObject = GUI_Message(lst3DObjects, "getselected")
-		
-	EndIf 
+	selectedType = GUI_Message(lst3DObjects, "getselected")
+	selectedObject = selectedType * MaxObjectPerType + objectsPlaced(selectedType)
 	
 	; Add a new object.
 	If (GUI_AppEvent() = btnAddObject)
@@ -1612,19 +1532,14 @@ Function UpdateWindow()
 	GUI_Message(lblObjectZScaleValue, "settext", "" + zScale + ".0x")
 	GUI_Message(lblObjectRotationValue, "settext", "" + rotation + "°")
 	
-	dxObject#(numero_oggetto) = xscale
-	dyObject#(numero_oggetto) = yscale
-	dzObject#(numero_oggetto) = zscale
-	
-	typeObject#(numero_oggetto) = GUI_Message(lstboxObjects, "getselected")
-	
-	
-	
+	objectsScaleX#(selectedObject) = xScale
+	objectsScaleY#(selectedObject) = yScale 
+	objectsScaleZ#(selectedObject) = zScale 
 	
 End Function
 
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
-;~F#1F4#1FE#214#21F#228#235#23C#245#24E#25C#26F#291#29C#2AA#2C2#301#327#338#34A#376
-;~F#380#41B#430#45A#465#46E#475#480#496#4C0#4DA#4F3#51B#56D
+;~F#137#159#1A8#1B3#1BD#1D3#1DE#1E7#1F4#1FB#204#20D#21B#22E#250#25B#269#281#2C0#2E6
+;~F#2F7#308#31A#346#350#3EB#400#42C#437#440#447#452#468#492#4AC#515#51B
 ;~C#Blitz3D
