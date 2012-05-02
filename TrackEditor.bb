@@ -273,6 +273,7 @@ Global lst3DObjects
 Global btnAddObject
 
 ; Object properties group.
+Global chkObjectScale
 Global lblObjectScale, sldObjectScale, lblObjectScaleValue
 Global lblObjectXScale, sldObjectXScale, lblObjectXScaleValue
 Global lblObjectYScale, sldObjectYScale, lblObjectYScaleValue
@@ -1526,6 +1527,7 @@ Function SetGuiState(state)
 		GUI_Message(sldObjectZScale, "setenabled", False)
 		GUI_Message(sldObjectRotation, "setenabled", False)
 		
+		
 	Else 
 		
 		; Scene editor.
@@ -1620,20 +1622,24 @@ Function CreateWindow()
 	
 	grpObjectProperties = GUI_CreateGroupBox(comWin, 10, 540, 270, 150, "Object Properties")
 	
+	
+	chkObjectScale = GUI_CreateCheckBox(grpObjectProperties, 250, 18, "")
+	
 	lblObjectScale = GUI_CreateLabel(grpObjectProperties, 25, 20, "Scale")
-	sldObjectScale = GUI_CreateSlider(grpObjectProperties, 75, 25, 140, 1, 1, 100)
+	sldObjectScale = GUI_CreateSlider(grpObjectProperties, 75, 25, 140, 1, 1, 10)
+	GUI_Message(sldObjectScale,"setvalue",Scale#)
 	lblObjectScaleValue = GUI_CreateLabel(grpObjectProperties, 220, 20, "1.0x")
 	
 	lblObjectXScale = GUI_CreateLabel(grpObjectProperties, 25, 45, "X Scale")
-	sldObjectXScale = GUI_CreateSlider(grpObjectProperties, 75, 50, 140, 1, 1, 100)
+	sldObjectXScale = GUI_CreateSlider(grpObjectProperties, 75, 50, 140, 1, 1, 10)
 	lblObjectXScaleValue = GUI_CreateLabel(grpObjectProperties, 220, 45, "1.0x")
 	
 	lblObjectYScale = GUI_CreateLabel(grpObjectProperties, 25, 70, "Y Scale")
-	sldObjectYScale = GUI_CreateSlider(grpObjectProperties, 75, 75, 140, 1, 1, 100)
+	sldObjectYScale = GUI_CreateSlider(grpObjectProperties, 75, 75, 140, 1, 1, 10)
 	lblObjectYScaleValue = GUI_CreateLabel(grpObjectProperties, 220, 70, "1.0x")
 	
 	lblObjectZScale = GUI_CreateLabel(grpObjectProperties, 25, 95, "Z Scale")
-	sldObjectZScale = GUI_CreateSlider(grpObjectProperties, 75, 100, 140, 1, 1, 100)
+	sldObjectZScale = GUI_CreateSlider(grpObjectProperties, 75, 100, 140, 1, 1, 10)
 	lblObjectZScaleValue = GUI_CreateLabel(grpObjectProperties, 220, 95, "1.0x")
 	
 	lblObjectRotation = GUI_CreateLabel(grpObjectProperties, 25, 120, "Rotation")
@@ -1653,6 +1659,10 @@ Function ResetSliders()
 	GUI_Message(sldObjectRotation, "setvalue", 0)
 	
 End Function
+
+
+Global Scale# = 1
+Global scaleIsChecked = 0
 
 Function UpdateWindow()
 	
@@ -1849,19 +1859,66 @@ Function UpdateWindow()
 		
 		addObject = 1
 		
+		GUI_Message(sldObjectScale,"setvalue",1)
+		GUI_Message(sldObjectXScale,"setvalue",1)
+		GUI_Message(sldObjectYScale,"setvalue",1)
+		GUI_Message(sldObjectZScale,"setvalue",1)
+		
 	EndIf
 	
 	; 3D OBJECTS
 	
-	xScale# = Int(GUI_Message(sldObjectXScale, "getvalue"))
-	yScale# = Int(GUI_Message(sldObjectYScale, "getvalue"))
-	zScale# = Int(GUI_Message(sldObjectZScale, "getvalue"))
+	
+	
+	If GUI_Message(chkObjectScale,"getchecked")
+		
+		Scale# = (GUI_Message(sldObjectScale, "getvalue"))
+		
+		GUI_Message(sldObjectXScale,"setvalue",Scale#)
+		GUI_Message(sldObjectYScale,"setvalue",Scale#)
+		GUI_Message(sldObjectZScale,"setvalue",Scale#)
+		
+		GUI_Message(sldObjectScale,"setenabled",True)
+		GUI_Message(sldObjectXScale,"setenabled",False)
+		GUI_Message(sldObjectYScale,"setenabled",False)
+		GUI_Message(sldObjectZScale,"setenabled",False)
+		
+		xScale# = Scale# 
+		yScale# = Scale# 
+		zScale# = Scale# 
+		
+		scaleIsChecked = 0
+		
+	Else
+		
+		If GUI_Message(chkObjectScale,"getchecked") = 0 And scaleIsChecked = 0
+			
+			GUI_Message(sldObjectScale,"setenabled",False)
+			GUI_Message(sldObjectXScale,"setenabled",True)
+			GUI_Message(sldObjectYScale,"setenabled",True)
+			GUI_Message(sldObjectZScale,"setenabled",True)
+			
+			GUI_Message(sldObjectXScale,"setvalue",Scale#)
+			GUI_Message(sldObjectYScale,"setvalue",Scale#)
+			GUI_Message(sldObjectZScale,"setvalue",Scale#)
+			
+			scaleIsChecked = 1
+			
+		EndIf
+		
+		xScale# = (GUI_Message(sldObjectXScale, "getvalue"))
+		yScale# = (GUI_Message(sldObjectYScale, "getvalue"))
+		zScale# = (GUI_Message(sldObjectZScale, "getvalue"))
+		
+	EndIf
+	
 	rotation# = Int(GUI_Message(sldObjectRotation, "getvalue"))
 	
-	GUI_Message(lblObjectXScaleValue, "settext", "" + xScale# + "x")
-	GUI_Message(lblObjectYScaleValue, "settext", "" + yScale# + "x")
-	GUI_Message(lblObjectZScaleValue, "settext", "" + zScale# + "x")
-	GUI_Message(lblObjectRotationValue, "settext", "" + rotation# + "°")
+	GUI_Message(lblObjectScaleValue, "settext",  Left("" + Scale#,4) + "x")
+	GUI_Message(lblObjectXScaleValue, "settext", Left("" + xScale#,4) + "x")
+	GUI_Message(lblObjectYScaleValue, "settext", Left("" + yScale#,4) + "x")
+	GUI_Message(lblObjectZScaleValue, "settext", Left("" + zScale#,4) + "x")
+	GUI_Message(lblObjectRotationValue, "settext","" + rotation# + "°")
 	
 	objectsScaleX#(selectedType,objectsPlaced(selectedType)) = xScale#
 	objectsScaleY#(selectedType,objectsPlaced(selectedType)) = yScale# 
@@ -1873,7 +1930,7 @@ End Function
 
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
-;~F#14A#16C#1AC#1B7#1C1#1D7#1EA#1F3#200#207#210#219#227#233#244#266#272#285#29D#2DC
-;~F#302#313#324#336#362#36F#37A#417#42C#458#45F#46A#473#49F#4D5#4EB#507#50E#519#52F
-;~F#544#56E#588#5A1#5A8#5C5#5DE#5E4#60E#618#66F
+;~F#14B#16D#1AD#1B8#1C2#1D8#1EB#1F4#201#208#211#21A#228#234#245#267#273#286#29E#2DD
+;~F#303#314#325#337#363#370#37B#418#42D#459#460#46B#474#4A0#4D6#4EC#508#50F#51A#530
+;~F#545#56F#589#5A2#5A9#5C6#5DF#610#675
 ;~C#Blitz3D
