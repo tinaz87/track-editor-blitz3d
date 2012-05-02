@@ -554,62 +554,61 @@ End Function
 ; Create a skydome.
 Function InitSkybox()
 	
-;	skydome = CreateSphere(24) 
-;	ScaleEntity skydome, 2000, 2000, 2000 
-;	FlipMesh skydome 
-;	EntityFX skydome, 1 
-;	skydomeTexture = LoadTexture("sky.jpg") 
-;	EntityTexture skydome, skydomeTexture 
+	;	skydome = CreateSphere() 
+	;	ScaleEntity skydome, 2000, 2000, 2000 
+	;	FlipMesh skydome 
+	;	EntityFX skydome, 1 
+	;	skydomeTexture = LoadTexture("sky.jpg") 
+	;	EntityTexture skydome, skydomeTexture 
 	
-;	CameraRange camera, 1, 3000
+	skybox = CreateMesh()
+	; Front face.
+	b = LoadBrush(SkyBoxPath$ + "Sunny1_front.png", 49)
+	s = CreateSurface(skybox, b)
+	AddVertex s, -1, +1, -1, 0, 0 : AddVertex s, +1, +1, -1, 1, 0
+	AddVertex s, +1, -1, -1, 1, 1 : AddVertex s, -1, -1, -1, 0, 1
+	AddTriangle s, 0, 1, 2 : AddTriangle s, 0, 2, 3
+	FreeBrush b
+	; Left face.
+	b = LoadBrush(SkyBoxPath$ + "Sunny1_left.png", 49)
+	s = CreateSurface(skybox, b)
+	AddVertex s, +1, +1, -1, 0, 0 : AddVertex s, +1, +1, +1, 1, 0
+	AddVertex s, +1, -1, +1, 1, 1 : AddVertex s, +1, -1, -1, 0, 1
+	AddTriangle s, 0, 1, 2 : AddTriangle s, 0, 2, 3
+	FreeBrush b
+	; Back face.
+	b = LoadBrush(SkyBoxPath$ + "Sunny1_back.png", 49)
+	s = CreateSurface(skybox, b)
+	AddVertex s, +1, +1, +1, 0, 0 : AddVertex s, -1, +1, +1, 1, 0
+	AddVertex s, -1, -1, +1, 1, 1 : AddVertex s, +1, -1, +1, 0, 1
+	AddTriangle s, 0, 1, 2 : AddTriangle s, 0, 2, 3
+	FreeBrush b
+	; Right face.
+	b = LoadBrush(SkyBoxPath$ + "Sunny1_right.png", 49)
+	s = CreateSurface(skybox, b)
+	AddVertex s, -1, +1, +1, 0, 0 : AddVertex s, -1, +1, -1, 1, 0
+	AddVertex s, -1, -1, -1, 1, 1 : AddVertex s, -1, -1, +1, 0, 1
+	AddTriangle s, 0, 1, 2 : AddTriangle s, 0, 2, 3
+	FreeBrush b
+	; Top face.
+	b = LoadBrush(SkyBoxPath$ + "Sunny1_up.png", 49)
+	s = CreateSurface(skybox, b)
+	AddVertex s, -1, +1, +1, 0, 1 : AddVertex s, +1, +1, +1, 0, 0
+	AddVertex s, +1, +1, -1, 1, 0 : AddVertex s, -1, +1, -1, 1, 1
+	AddTriangle s, 0, 1, 2 : AddTriangle s, 0, 2, 3
+	FreeBrush b
+	; Bottom face.
+	b = LoadBrush(SkyBoxPath$ + "Sunny1_down.png", 49)
+	s = CreateSurface(skybox, b)
+	AddVertex s, -1, -1, -1, 1, 0 : AddVertex s, +1, -1, -1, 1, 1
+	AddVertex s, +1, -1, +1, 0, 1 : AddVertex s, -1, -1, +1, 0, 0
+	AddTriangle s, 0, 1, 2 : AddTriangle s, 0, 2, 3
+	FreeBrush b
 	
-	skybox=CreateMesh()
- ;front face
-	b=LoadBrush( SkyBoxPath$ + "Sunny1_front.png",49 )
-	s=CreateSurface( skybox,b )
-	AddVertex s,-1,+1,-1,0,0:AddVertex s,+1,+1,-1,1,0
-	AddVertex s,+1,-1,-1,1,1:AddVertex s,-1,-1,-1,0,1
-	AddTriangle s,0,1,2:AddTriangle s,0,2,3
-	FreeBrush b
- ;left face
-	b=LoadBrush( SkyBoxPath$ +"Sunny1_left.png",49 )
-	s=CreateSurface( skybox,b )
-	AddVertex s,+1,+1,-1,0,0:AddVertex s,+1,+1,+1,1,0
-	AddVertex s,+1,-1,+1,1,1:AddVertex s,+1,-1,-1,0,1
-	AddTriangle s,0,1,2:AddTriangle s,0,2,3
-	FreeBrush b
- ;back face
-	b=LoadBrush( SkyBoxPath$ +"Sunny1_back.png",49 )
-	s=CreateSurface( skybox,b )
-	AddVertex s,+1,+1,+1,0,0:AddVertex s,-1,+1,+1,1,0
-	AddVertex s,-1,-1,+1,1,1:AddVertex s,+1,-1,+1,0,1
-	AddTriangle s,0,1,2:AddTriangle s,0,2,3
-	FreeBrush b
- ;right face
-	b=LoadBrush( SkyBoxPath$ +"Sunny1_right.png",49 )
-	s=CreateSurface( skybox,b )
-	AddVertex s,-1,+1,+1,0,0:AddVertex s,-1,+1,-1,1,0
-	AddVertex s,-1,-1,-1,1,1:AddVertex s,-1,-1,+1,0,1
-	AddTriangle s,0,1,2:AddTriangle s,0,2,3
-	FreeBrush b
- ;top face
-	b=LoadBrush( SkyBoxPath$ +"Sunny1_up.png",49 )
-	s=CreateSurface( skybox,b )
-	AddVertex s,-1,+1,+1,0,1:AddVertex s,+1,+1,+1,0,0
-	AddVertex s,+1,+1,-1,1,0:AddVertex s,-1,+1,-1,1,1
-	AddTriangle s,0,1,2:AddTriangle s,0,2,3
-	FreeBrush b
- ;bottom face
-	b=LoadBrush( SkyBoxPath$ + "Sunny1_down.png",49 )
-	s=CreateSurface( skybox,b )
-	AddVertex s,-1,-1,-1,1,0:AddVertex s,+1,-1,-1,1,1
-	AddVertex s,+1,-1,+1,0,1:AddVertex s,-1,-1,+1,0,0
-	AddTriangle s,0,1,2:AddTriangle s,0,2,3
-	FreeBrush b
-	ScaleMesh skybox,100,100,100
+	ScaleMesh skybox, 100, 100, 100
 	FlipMesh skybox
-	EntityFX skybox,1
-	EntityOrder skybox,10
+	EntityFX skybox, 1
+	EntityOrder skybox, 10
 	
 End Function
 
@@ -2036,7 +2035,7 @@ End Function
 
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
-;~F#15B#17D#1BD#1C8#1D2#1E8#1FB#204#211#218#221#22A#268#274#285#2A7#2B3#2C6#2EC#32B
-;~F#351#362#373#385#3B1#3BE#3C9#476#48B#4B7#4BE#4C9#4D2#4FE#534#54A#566#56D#578#58E
-;~F#5A3#5CD#5E7#600#607#62D#642#651#657#683#68D#6E7#6F1
+;~F#15B#17D#1BD#1C8#1D2#1E8#1FB#204#211#218#221#22A#267#273#284#2A6#2B2#2C5#2EB#32A
+;~F#350#361#372#384#3B0#3BD#3C8#475#48A#4B6#4BD#4C8#4D1#4FD#533#549#565#56C#577#58D
+;~F#5A2#5CC#5E6#5FF#606#62C#641#650#656#682#68C#6E6#6F0
 ;~C#Blitz3D
