@@ -63,9 +63,20 @@ Const MaxHeightmapsNumber	= 20
 ; Max number of tiles available.
 Const MaxTilesNumber 		= 20
 
+; Default heighmtap index.
+Const DefaultHeightmapIndex = 5
+
+; Default tile index.
+Const DefaultTileIndex 		= 6
+
 ; Max loadable scene objects.
 Const MaxObjectTypes		= 50
 Const MaxObjectPerType 		= 20 
+
+; Far away...
+Const FarAwayX#				= 0
+Const FarAwayY#				= -1000
+Const FarAwayZ#				= 0
 
 ; -----------------------------------------------------------------------------------
 
@@ -198,14 +209,14 @@ Dim heightmaps(MaxHeightmapsNumber)
 Dim heightmapsPaths$(MaxHeightmapsNumber)
 
 ; Selected heightmap.
-Global selectedHeightmap	= 3
+Global selectedHeightmap	= DefaultHeightmapIndex
 
 ; Tiles.
 Dim tiles(MaxTilesNumber)
 Dim tilesPaths$(MaxTilesNumber)
 
 ; Selected tile.
-Global selectedTile			= 0
+Global selectedTile			= DefaultTileIndex
 
 ; Terrain scales.
 Global terrainHScale#		= DefaultTerrainHScale
@@ -236,6 +247,11 @@ Global selectedType			= 0
 
 ; If you're adding a new object to the scene, say 'true'.
 Global addObject 			= 0
+
+; Current global scale factor (for selected scene object).
+Global scale# 				= 1
+; Do you have enabled the proportional scale mode?
+Global scaleIsChecked 		= 0
 
 ; -----------------------------------------------------------------------------------
 
@@ -273,8 +289,7 @@ Global lst3DObjects
 Global btnAddObject
 
 ; Object properties group.
-Global chkObjectScale
-Global lblObjectScale, sldObjectScale, lblObjectScaleValue
+Global lblObjectScale, sldObjectScale, chkObjectScale, lblObjectScaleValue
 Global lblObjectXScale, sldObjectXScale, lblObjectXScaleValue
 Global lblObjectYScale, sldObjectYScale, lblObjectYScaleValue
 Global lblObjectZScale, sldObjectZScale, lblObjectZScaleValue
@@ -555,7 +570,7 @@ Function ResetMarkersPosition()
 	For n = 0 To MarkersNumber - 1
 		
 		; Put the marker away.
-		PositionEntity markers(n), 0, -1000, 0
+		PositionEntity markers(n), FarAwayX#, FarAwayY#, FarAwayZ#
 		
 	Next
 	
@@ -589,7 +604,7 @@ Function InitAutoGenPoints()
 		ScaleEntity autoGenPoints(n), 2, 2, 2
 		
 		; Put the marker away.
-		PositionEntity autoGenPoints(n), 0, -1000, 0
+		PositionEntity autoGenPoints(n), FarAwayX#, FarAwayY#, FarAwayZ#
 		
 	Next
 	
@@ -605,8 +620,8 @@ Function InitAutoGenPoints()
 		ScaleEntity autoGenPointsDX(n), 1, 1, 1
 		
 		; Put the marker away.
-		PositionEntity autoGenPointsSX(n), 0, -1000, 0
-		PositionEntity autoGenPointsDX(n), 0, -1000, 0
+		PositionEntity autoGenPointsSX(n), FarAwayX#, FarAwayY#, FarAwayZ#
+		PositionEntity autoGenPointsDX(n), FarAwayX#, FarAwayY#, FarAwayZ#
 		
 	Next
 	
@@ -733,7 +748,7 @@ End Function
 ; Add a marker.
 Function AddMarker()
 	
-	If MouseHit(1)
+	If (MouseHit(1))
 		
 		currentPick = CameraPick(camera, MouseX(), MouseY())  
 		
@@ -756,7 +771,7 @@ Function AddMarker()
 			markersCoordY#(currentMarkerIndex) = py#
 			markersCoordZ#(currentMarkerIndex) = pz#
 			
-			PositionEntity markers(currentMarkerIndex), markersCoordX#(currentMarkerIndex), 0, markersCoordZ#(currentMarkerIndex)
+			PositionEntity markers(currentMarkerIndex), markersCoordX#(currentMarkerIndex), markersCoordY#(currentMarkerIndex), markersCoordZ#(currentMarkerIndex)
 			
 			markersPlaced(currentMarkerIndex) = True
 			
@@ -810,11 +825,11 @@ Function ResetPoints()
 		
 		
 		; Put the marker away.
-		PositionEntity autoGenPoints(n), 0, -1000, 0
+		PositionEntity autoGenPoints(n), FarAwayX#, FarAwayY#, FarAwayZ#
 		
 		; Put the marker away.
-		PositionEntity autoGenPointsSX(n), 0, -1000, 0
-		PositionEntity autoGenPointsDX(n), 0, -1000, 0
+		PositionEntity autoGenPointsSX(n), FarAwayX#, FarAwayY#, FarAwayZ#
+		PositionEntity autoGenPointsDX(n), FarAwayX#, FarAwayY#, FarAwayZ#
 		
 	Next
 	
@@ -880,8 +895,8 @@ End Function
 ; Reset terrain.
 Function ResetTerrain()
 	
-	selectedHeightmap = 0
-	selectedTile = 0
+	selectedHeightmap = DefaultHeightmapIndex
+	selectedTile = DefaultTileIndex
 	
 	terrainHScale = DefaultTerrainHScale
 	terrainVScale = DefaultTerrainVScale
@@ -902,7 +917,7 @@ Function TrackEditorUpdate()
 		
 		For n = 0 To numMarkersPlaced - 1
 			
-			PositionEntity markers(n), markersCoordX#(n), 0, markersCoordZ#(n)
+			PositionEntity markers(n), markersCoordX#(n), markersCoordY#(n), markersCoordZ#(n)
 			
 			If (n = currentMarkerIndex - 1)
 				EntityColor markers(n), 0, 255, 0
@@ -1011,7 +1026,12 @@ Function TrackEditorUpdate()
 		For n = 0 To numAutoGenPoints - 1
 			
 			; Position main points.
-			PositionEntity autoGenPoints(n), autoGenPointsCoordX(n), 0, autoGenPointsCoordZ(n)
+			x# = autoGenPointsCoordX#(n)
+			z# = autoGenPointsCoordZ#(n)
+			
+			y# = TerrainY(terrain, x#, 0, z#)
+			
+			PositionEntity autoGenPoints(n), x#, y#, z#
 			
 		Next 
 		
@@ -1028,8 +1048,19 @@ Function TrackEditorUpdate()
 			For n = 0 To numAutoGenPoints - 1
 				
 				; Position SX and DX points.
-				PositionEntity autoGenPointsSX(n), autoGenPointsSXCoord#(n, 0), 0, autoGenPointsSXCoord#(n, 1)
-				PositionEntity autoGenPointsDX(n), autoGenPointsDXCoord#(n, 0), 0, autoGenPointsDXCoord#(n, 1)
+				sx# = autoGenPointsSXCoord#(n, 0)
+				sz# = autoGenPointsDXCoord#(n, 1)
+				
+				sy# = TerrainY(terrain, sx#, 0, sz#)
+				
+				PositionEntity autoGenPointsSX(n), sx#, sy#, sz#
+				
+				dx# = autoGenPointsSXCoord#(n, 0)
+				dz# = autoGenPointsDXCoord#(n, 1)
+				
+				dy# = TerrainY(terrain, dx#, 0, dz#)
+				
+				PositionEntity autoGenPointsDX(n), dx#, dy#, dz#
 				
 			Next	
 			
@@ -1046,7 +1077,7 @@ End Function
 ; -----------------------------------------------------------------------------------
 
 ; Save the current track to file.
-Function SaveMarkers()
+Function SaveMarkersData()
 	
 	outFile = WriteFile(SavedDataPath$ + TrackData$)
 	
@@ -1067,7 +1098,7 @@ Function SaveMarkers()
 End Function 
 
 ; Load a track from file.
-Function LoadMarkers()
+Function LoadMarkersData()
 	
 	If (FileType(SavedDataPath$ + TrackData$))
 		
@@ -1131,7 +1162,7 @@ End Function
 ; Save the track (markers and 3DS).
 Function SaveTrack()
 	
-	SaveMarkers()
+	SaveMarkersData()
 	
 	Save3DS()
 	
@@ -1333,7 +1364,7 @@ Function ResetObjectsPosition()
 		
 		If (objects(n, 0) > 0)
 			
-			PositionEntity objects(n, 0), 0, -1000, 0
+			PositionEntity objects(n, 0), FarAwayX#, FarAwayY#, FarAwayZ#
 			
 			For k = 1 To MaxObjectPerType - 1
 				
@@ -1375,7 +1406,7 @@ Function LoadObjects()
 		
 		If (objects(n, 0) > 0)
 			
-			PositionEntity objects(n, 0), 0, -1000, 0
+			PositionEntity objects(n, 0), FarAwayX#, FarAwayY#, FarAwayZ#
 			
 			For k = 1 To MaxObjectPerType - 1
 				
@@ -1449,27 +1480,36 @@ End Function
 ; Position objects.
 Function PositionObject()
 	
-	If addObject = 1
+	If (addObject = 1)
 		
-		CameraPick(camera,MouseX(),MouseY())
+		currentPick = CameraPick(camera, MouseX(), MouseY())
 		
-		currentObject = objects(selectedType, objectsPlaced(selectedType))
-		
-		ScaleEntity currentObject, objectsScaleX#(selectedType,objectsPlaced(selectedType)), objectsScaleY#(selectedType,objectsPlaced(selectedType)), objectsScaleZ#(selectedType,objectsPlaced(selectedType))
-		
-		PositionEntity currentObject, PickedX#(), PickedY#(), PickedZ#()
-		
-		RotateEntity currentObject, 0, objectsRotationY(selectedType,objectsPlaced(selectedType)), 0
-		
-		If MouseDown(3) ; Mouse Wheel Button
+		If (currentPick > 0)
 			
-			objectsPositionsX#(selectedType,objectsPlaced(selectedType)) = PickedX#()
-			objectsPositionsY#(selectedType,objectsPlaced(selectedType)) = PickedY#()
-			objectsPositionsZ#(selectedType,objectsPlaced(selectedType)) = PickedZ#()
-			objectsPlaced(selectedType) = objectsPlaced(selectedType) + 1 
-			addObject = 0
+			n = selectedType
+			k = objectsPlaced(selectedType)
 			
-		EndIf
+			obj = objects(selectedType, objectsPlaced(selectedType))
+			
+			ScaleEntity obj, objectsScaleX#(n, k), objectsScaleY#(n, k), objectsScaleZ#(n, k)
+			
+			PositionEntity obj, PickedX#(), PickedY#(), PickedZ#()
+			
+			RotateEntity obj, 0, objectsRotationY#(n, k), 0
+			
+			If (MouseDown(3)) ; Mouse Wheel Button
+				
+				objectsPositionsX#(n, k) = PickedX#()
+				objectsPositionsY#(n, k) = PickedY#()
+				objectsPositionsZ#(n, k) = PickedZ#()
+				
+				objectsPlaced(selectedType) = objectsPlaced(selectedType) + 1 
+				
+				addObject = 0
+				
+			EndIf
+			
+		EndIf 
 		
 	EndIf
 	
@@ -1495,6 +1535,17 @@ Function ResetObjects()
 	LoadObjects()
 		
 End Function
+
+; Reset a single object (position, scale and orientation).
+Function ResetObject(n, k)
+	
+	ScaleEntity objects(n, k), 1, 1, 1
+	
+	PositionEntity objects(n, k), FarAwayX#, FarAwayY#, FarAwayZ#
+	
+	RotateEntity objects(n, k), 0, 0, 0
+	
+End Function 
 
 ; -----------------------------------------------------------------------------------
 
@@ -1522,11 +1573,11 @@ Function SetGuiState(state)
 		; Disable:
 		GUI_Message(btnAddObject, "setenabled", False)
 		GUI_Message(sldObjectScale, "setenabled", False)
+		GUI_Message(chkObjectScale, "setenabled", False)
 		GUI_Message(sldObjectXScale, "setenabled", False)
 		GUI_Message(sldObjectYScale, "setenabled", False)
 		GUI_Message(sldObjectZScale, "setenabled", False)
 		GUI_Message(sldObjectRotation, "setenabled", False)
-		
 		
 	Else 
 		
@@ -1541,6 +1592,7 @@ Function SetGuiState(state)
 		; Enable:
 		GUI_Message(btnAddObject, "setenabled", True)
 		GUI_Message(sldObjectScale, "setenabled", True)
+		GUI_Message(chkObjectScale, "setenabled", True)
 		GUI_Message(sldObjectXScale, "setenabled", True)
 		GUI_Message(sldObjectYScale, "setenabled", True)
 		GUI_Message(sldObjectZScale, "setenabled", True)
@@ -1622,29 +1674,28 @@ Function CreateWindow()
 	
 	grpObjectProperties = GUI_CreateGroupBox(comWin, 10, 540, 270, 150, "Object Properties")
 	
-	
-	chkObjectScale = GUI_CreateCheckBox(grpObjectProperties, 250, 18, "")
-	
 	lblObjectScale = GUI_CreateLabel(grpObjectProperties, 25, 20, "Scale")
-	sldObjectScale = GUI_CreateSlider(grpObjectProperties, 75, 25, 140, 1, 1, 10)
-	GUI_Message(sldObjectScale,"setvalue",Scale#)
-	lblObjectScaleValue = GUI_CreateLabel(grpObjectProperties, 220, 20, "1.0x")
+	sldbjectScale = GUI_CreateSlider(grpObjectProperties, 75, 25, 120, 1, 1, 100)
+	lblObjectScaleValue = GUI_CreateLabel(grpObjectProperties, 200, 20, "1.0x")
+	chkObjectScale = GUI_CreateCheckBox(grpObjectProperties, 230, 20, "")
+	
+	GUI_Message(sldObjectScale, "setvalue", scale#)
 	
 	lblObjectXScale = GUI_CreateLabel(grpObjectProperties, 25, 45, "X Scale")
-	sldObjectXScale = GUI_CreateSlider(grpObjectProperties, 75, 50, 140, 1, 1, 10)
-	lblObjectXScaleValue = GUI_CreateLabel(grpObjectProperties, 220, 45, "1.0x")
+	sldObjectXScale = GUI_CreateSlider(grpObjectProperties, 75, 50, 120, 1, 1, 100)
+	lblObjectXScaleValue = GUI_CreateLabel(grpObjectProperties, 200, 45, "1.0x")
 	
 	lblObjectYScale = GUI_CreateLabel(grpObjectProperties, 25, 70, "Y Scale")
-	sldObjectYScale = GUI_CreateSlider(grpObjectProperties, 75, 75, 140, 1, 1, 10)
-	lblObjectYScaleValue = GUI_CreateLabel(grpObjectProperties, 220, 70, "1.0x")
+	sldObjectYScale = GUI_CreateSlider(grpObjectProperties, 75, 75, 120, 1, 1, 100)
+	lblObjectYScaleValue = GUI_CreateLabel(grpObjectProperties, 200, 70, "1.0x")
 	
 	lblObjectZScale = GUI_CreateLabel(grpObjectProperties, 25, 95, "Z Scale")
-	sldObjectZScale = GUI_CreateSlider(grpObjectProperties, 75, 100, 140, 1, 1, 10)
-	lblObjectZScaleValue = GUI_CreateLabel(grpObjectProperties, 220, 95, "1.0x")
+	sldObjectZScale = GUI_CreateSlider(grpObjectProperties, 75, 100, 120, 1, 1, 100)
+	lblObjectZScaleValue = GUI_CreateLabel(grpObjectProperties, 200, 95, "1.0x")
 	
 	lblObjectRotation = GUI_CreateLabel(grpObjectProperties, 25, 120, "Rotation")
-	sldObjectRotation = GUI_CreateSlider(grpObjectProperties, 75, 125, 140, 0, 0, 360)
-	lblObjectRotationValue = GUI_CreateLabel(grpObjectProperties, 220, 120, "0°")
+	sldObjectRotation = GUI_CreateSlider(grpObjectProperties, 75, 125, 120, 0, 0, 360)
+	lblObjectRotationValue = GUI_CreateLabel(grpObjectProperties, 200, 120, "0°")
 	
 	; Set GUI state.
 	SetGuiState(editorState)
@@ -1653,16 +1704,13 @@ End Function
 
 Function ResetSliders()
 	
+	GUI_Message(sldObjectScale, "setvalue", 1)
 	GUI_Message(sldObjectXScale, "setvalue", 1)
 	GUI_Message(sldObjectYScale, "setvalue", 1)
 	GUI_Message(sldObjectZScale, "setvalue", 1)
 	GUI_Message(sldObjectRotation, "setvalue", 0)
 	
 End Function
-
-
-Global Scale# = 1
-Global scaleIsChecked = 0
 
 Function UpdateWindow()
 	
@@ -1708,7 +1756,7 @@ Function UpdateWindow()
 		If (editorState = 0)
 			
 			; Load track from file.
-			LoadMarkers()
+			LoadMarkersData()
 			
 			LoadTerrainData()
 			SetTerrainGUI()
@@ -1730,7 +1778,7 @@ Function UpdateWindow()
 		If (editorState = 0)
 			
 			; Save track.
-			SaveMarkers()
+			SaveMarkersData()
 			
 			SaveTerrainData()
 			
@@ -1842,15 +1890,11 @@ Function UpdateWindow()
 	; Get selected object.
 	If (selectedType <> GUI_Message(lst3DObjects, "getselected"))
 		
-		ScaleEntity objects(selectedType,objectsPlaced(selectedType)),1,1,1
-		
-		PositionEntity objects(selectedType,objectsPlaced(selectedType)),0,-1000,-1000
-		
-		RotateEntity objects(selectedType,objectsPlaced(selectedType)),0,0,0
-		
-		selectedType = GUI_Message(lst3DObjects, "getselected")
+		ResetObject(selectedType, objectsPlaced(selectedType))
 		
 		ResetSliders()
+		
+		selectedType = GUI_Message(lst3DObjects, "getselected")
 		
 	EndIf 
 	
@@ -1859,78 +1903,77 @@ Function UpdateWindow()
 		
 		addObject = 1
 		
-		GUI_Message(sldObjectScale,"setvalue",1)
-		GUI_Message(sldObjectXScale,"setvalue",1)
-		GUI_Message(sldObjectYScale,"setvalue",1)
-		GUI_Message(sldObjectZScale,"setvalue",1)
+		ResetSliders()
 		
 	EndIf
 	
 	; 3D OBJECTS
 	
+	If (editorState = 1)
 	
-	
-	If GUI_Message(chkObjectScale,"getchecked")
-		
-		Scale# = (GUI_Message(sldObjectScale, "getvalue"))
-		
-		GUI_Message(sldObjectXScale,"setvalue",Scale#)
-		GUI_Message(sldObjectYScale,"setvalue",Scale#)
-		GUI_Message(sldObjectZScale,"setvalue",Scale#)
-		
-		GUI_Message(sldObjectScale,"setenabled",True)
-		GUI_Message(sldObjectXScale,"setenabled",False)
-		GUI_Message(sldObjectYScale,"setenabled",False)
-		GUI_Message(sldObjectZScale,"setenabled",False)
-		
-		xScale# = Scale# 
-		yScale# = Scale# 
-		zScale# = Scale# 
-		
-		scaleIsChecked = 0
-		
-	Else
-		
-		If GUI_Message(chkObjectScale,"getchecked") = 0 And scaleIsChecked = 0
+		If (GUI_Message(chkObjectScale, "getchecked"))
 			
-			GUI_Message(sldObjectScale,"setenabled",False)
-			GUI_Message(sldObjectXScale,"setenabled",True)
-			GUI_Message(sldObjectYScale,"setenabled",True)
-			GUI_Message(sldObjectZScale,"setenabled",True)
+			scale# = (GUI_Message(sldObjectScale, "getvalue"))
 			
-			GUI_Message(sldObjectXScale,"setvalue",Scale#)
-			GUI_Message(sldObjectYScale,"setvalue",Scale#)
-			GUI_Message(sldObjectZScale,"setvalue",Scale#)
+			GUI_Message(sldObjectXScale,"setvalue", scale#)
+			GUI_Message(sldObjectYScale,"setvalue", scale#)
+			GUI_Message(sldObjectZScale,"setvalue", scale#)
 			
-			scaleIsChecked = 1
+			GUI_Message(sldObjectScale, "setenabled", True)
+			GUI_Message(sldObjectXScale, "setenabled", False)
+			GUI_Message(sldObjectYScale, "setenabled", False)
+			GUI_Message(sldObjectZScale, "setenabled", False)
+			
+			xScale# = scale# 
+			yScale# = scale# 
+			zScale# = scale# 
+			
+			scaleIsChecked = 0
+			
+		Else
+			
+			If GUI_Message(chkObjectScale, "getchecked") = 0 And scaleIsChecked = 0
+				
+				GUI_Message(sldObjectScale, "setenabled", False)
+				GUI_Message(sldObjectXScale, "setenabled", True)
+				GUI_Message(sldObjectYScale, "setenabled", True)
+				GUI_Message(sldObjectZScale, "setenabled", True)
+				
+				GUI_Message(sldObjectXScale, "setvalue", scale#)
+				GUI_Message(sldObjectYScale, "setvalue", scale#)
+				GUI_Message(sldObjectZScale, "setvalue", scale#)
+				
+				scaleIsChecked = 1
+				
+			EndIf
+			
+			xScale# = (GUI_Message(sldObjectXScale, "getvalue"))
+			yScale# = (GUI_Message(sldObjectYScale, "getvalue"))
+			zScale# = (GUI_Message(sldObjectZScale, "getvalue"))
 			
 		EndIf
 		
-		xScale# = (GUI_Message(sldObjectXScale, "getvalue"))
-		yScale# = (GUI_Message(sldObjectYScale, "getvalue"))
-		zScale# = (GUI_Message(sldObjectZScale, "getvalue"))
+		rotation# = Int(GUI_Message(sldObjectRotation, "getvalue"))
 		
-	EndIf
-	
-	rotation# = Int(GUI_Message(sldObjectRotation, "getvalue"))
-	
-	GUI_Message(lblObjectScaleValue, "settext",  Left("" + Scale#,4) + "x")
-	GUI_Message(lblObjectXScaleValue, "settext", Left("" + xScale#,4) + "x")
-	GUI_Message(lblObjectYScaleValue, "settext", Left("" + yScale#,4) + "x")
-	GUI_Message(lblObjectZScaleValue, "settext", Left("" + zScale#,4) + "x")
-	GUI_Message(lblObjectRotationValue, "settext","" + rotation# + "°")
-	
-	objectsScaleX#(selectedType,objectsPlaced(selectedType)) = xScale#
-	objectsScaleY#(selectedType,objectsPlaced(selectedType)) = yScale# 
-	objectsScaleZ#(selectedType,objectsPlaced(selectedType)) = zScale#
-	
-	objectsRotationY(selectedType,objectsPlaced(selectedType)) = rotation#
+		GUI_Message(lblObjectScaleValue, "settext",  Left("" + scale#, 4) + "x")
+		GUI_Message(lblObjectXScaleValue, "settext", Left("" + xScale#, 4) + "x")
+		GUI_Message(lblObjectYScaleValue, "settext", Left("" + yScale#, 4) + "x")
+		GUI_Message(lblObjectZScaleValue, "settext", Left("" + zScale#, 4) + "x")
+		GUI_Message(lblObjectRotationValue, "settext", "" + rotation# + "°")
+		
+		objectsScaleX#(selectedType, objectsPlaced(selectedType)) = xScale#
+		objectsScaleY#(selectedType, objectsPlaced(selectedType)) = yScale# 
+		objectsScaleZ#(selectedType, objectsPlaced(selectedType)) = zScale#
+		
+		objectsRotationY(selectedType, objectsPlaced(selectedType)) = rotation#
+		
+	EndIf 
 	
 End Function
 
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
-;~F#14B#16D#1AD#1B8#1C2#1D8#1EB#1F4#201#208#211#21A#228#234#245#267#273#286#29E#2DD
-;~F#303#314#325#337#363#370#37B#418#42D#459#460#46B#474#4A0#4D6#4EC#508#50F#51A#530
-;~F#545#56F#589#5A2#5A9#5C6#5DF#610#675
+;~F#15A#17C#1BC#1C7#1D1#1E7#1FA#203#210#217#220#229#237#243#254#276#282#295#2AD#2EC
+;~F#312#323#334#346#372#37F#38A#437#44C#478#47F#48A#493#4BF#4F5#50B#527#52E#539#54F
+;~F#564#58E#5A8#5C1#5C8#5EE#603#612#618#644#64E#6A8#6B2
 ;~C#Blitz3D
