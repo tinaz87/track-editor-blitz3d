@@ -55,7 +55,7 @@ Const DefaultTerrainHScale	= 1
 Const DefaultTerrainVScale	= 50
 
 ; Default terrain's tile scale.
-Const DefaultTileScale		= 10
+Const DefaultTileScale		= 32
 
 ; Max number of heightmaps available.
 Const MaxHeightmapsNumber	= 20
@@ -666,11 +666,23 @@ Function MoveCamera()
 	
 	MoveEntity(camera, xx, 0, zz)
 	
-	mouseDeltaX# = MouseX() - mouseOldX
-	mouseDeltaY# = MouseY() - mouseOldY
+	x# = EntityX(camera) 
+	y# = EntityY(camera) 
+	z# = EntityZ(camera) 
 	
+	terrainLevel# = TerrainY(terrain, x#, y#, z#) + 5 
+	
+	If (y# < terrainLevel#)
+	
+		PositionEntity camera, x#, terrainLevel#, z#
+		
+	EndIf 
+		
 	; Check if you've pressed mouse DX.
 	If MouseDown(2)
+		
+		mouseDeltaX# = MouseX() - mouseOldX
+		mouseDeltaY# = MouseY() - mouseOldY
 		
 		TurnEntity(camera, mouseDeltaY# * TurnSpeed#, 0, 0, False)
 		TurnEntity(camera, 0, mouseDeltaX# * -TurnSpeed#, 0, True)
@@ -1973,7 +1985,7 @@ End Function
 
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
-;~F#15A#17C#1BC#1C7#1D1#1E7#1FA#203#210#217#220#229#237#243#254#276#282#295#2AD#2EC
-;~F#312#323#334#346#372#37F#38A#437#44C#478#47F#48A#493#4BF#4F5#50B#527#52E#539#54F
-;~F#564#58E#5A8#5C1#5C8#5EE#603#612#618#644#64E#6A8#6B2
+;~F#15A#17C#1BC#1C7#1D1#1E7#1FA#203#210#217#220#229#237#243#254#276#282#295#2B9#2F8
+;~F#31E#32F#340#352#37E#38B#396#443#458#484#48B#496#49F#4CB#501#517#533#53A#545#55B
+;~F#570#59A#5B4#5CD#5D4#5FA#60F#61E#624#650#65A#6B4#6BE
 ;~C#Blitz3D
