@@ -17,7 +17,7 @@ Graphics3D ScreenWidth, ScreenHeight, 0, 2
 SetBuffer BackBuffer()
 
 ; Hide the pointer.
-;HidePointer()
+HidePointer()
 
 ; -----------------------------------------------------------------------------------
 
@@ -72,12 +72,26 @@ Const MaxObjectPerType 		= 20
 
 ; --- PATHS -------------------------------------------------------------------------
 
+Const SavedDataPath$	= ".\TrackData\"
+
 Const MediaPath$ 		= ".\Media\"
 Const HeightMapsPath$ 	= ".\Media\HeightMaps\"
 Const TilesPath$ 		= ".\Media\Tiles\"
 Const ObjectsPath$		= ".\Media\3DObjects\"
 Const TexturesPath$		= ".\Media\Textures\"
 Const IconsPath$		= ".\Media\Icons\"
+
+; -----------------------------------------------------------------------------------
+
+
+; --- FILENAMES ---------------------------------------------------------------------
+
+Const TrackData$		= "Track.txt"
+Const Track3DS$			= "Track.3ds"
+Const SceneData$		= "Scene.txt"
+
+; -----------------------------------------------------------------------------------
+
 
 ; --- VARIABLES ---------------------------------------------------------------------
 
@@ -173,9 +187,6 @@ Global updateNeeded			= False
 ; Do you want to render track's triangles?
 Global renderTriangles		= 0
 
-; Track's mesh.
-Global track				= 0
-
 ; Terrain.
 Global terrain				= 0
 ; Terrain's tile.
@@ -213,6 +224,11 @@ Dim objectsPositionsZ#(MaxObjectTypes * MaxObjectPerType)
 Dim objectsScaleX#(MaxObjectTypes * MaxObjectPerType)
 Dim objectsScaleY#(MaxObjectTypes * MaxObjectPerType)
 Dim objectsScaleZ#(MaxObjectTypes * MaxObjectPerType)
+
+Dim objectsRotationY#(MaxObjectTypes * MaxObjectPerType)
+
+; Selected type.
+Global selectedType			= 0
 
 ; Selected object.
 Global selectedObject		= 0
@@ -470,8 +486,16 @@ Function DestroyTerrain()
 	If (terrain > 0)
 		
 		FreeEntity terrain
+		terrain = 0
 		
 	EndIf 
+	
+;	If (terrainTile > 0)
+;		
+;		FreeEntity terrainTile
+;		terrainTile = 0
+;		
+;	EndIf 
 	
 End Function
 
@@ -595,6 +619,7 @@ Function DestroyMarkers()
 	For n = 0 To MarkersNumber - 1
 		
 		FreeEntity markers(n)
+		markers(n) = 0
 		
 	Next
 	
@@ -607,8 +632,13 @@ Function DestroyAutoGenPoints()
 		
 		FreeEntity autoGenPoints(n)
 		
+		autoGenPoints(n) = 0
+		
 		FreeEntity autoGenPointsSX(n)
 		FreeEntity autoGenPointsDX(n)
+		
+		autoGenPointsSX(n) = 0
+		autoGenPointsDX(n) = 0
 		
 	Next
 	
@@ -840,7 +870,10 @@ Function DestroyTrack()
 	
 	; Clean an existing mesh.
 	If (trackMesh > 0)
+		
 		FreeEntity trackMesh
+		trackMesh = 0
+		
 	End If 
 	
 End Function 
@@ -1003,7 +1036,7 @@ End Function
 ; Save the current track to file.
 Function SaveMarkers()
 	
-	outFile = WriteFile("Track.txt")
+	outFile = WriteFile(SavedDataPath$ + TrackData$)
 	
 	For n = 0 To MarkersNumber - 1
 		
@@ -1024,9 +1057,9 @@ End Function
 ; Load a track from file.
 Function LoadMarkers()
 	
-	If FileType("Track.txt")
+	If (FileType(SavedDataPath$ + TrackData$))
 		
-		inFile = ReadFile("Track.txt")
+		inFile = ReadFile(SavedDataPath$ + TrackData$)
 		
 		loadedPoints = 0
 		
@@ -1070,7 +1103,7 @@ Function Save3DS()
 	
 	CreateTrack()
 	
-	SaveMesh3DS(trackMesh,"Track.3ds")
+	SaveMesh3DS(trackMesh, SavedDataPath$ + Track3DS$)
 	
 	DestroyTrack()
 	
@@ -1079,7 +1112,7 @@ End Function
 ; Save the track (markers and 3DS).
 Function SaveTrack()
 	
-	SaveTrack()
+	SaveMarkers()
 	
 	Save3DS()
 	
@@ -1221,76 +1254,36 @@ End Function
 ; Update objects.
 Function UpdateObjects()
 	
-;	For n = 0 To maxObjecttype - 1
-;		
-;		aum_object(n) = -1 ; contatore dell'oggetto di quel tipo = 1
-;		
-;		If (objects(n,0) > 0) ; se l'oggetto esiste
-;			For k=0 To maxObjectXtype
-;				PositionEntity objects(n,k),10000,0,0 ; posiziono inizialmente gli oggetti molto lontani (virtualmente all'infinito)
-;				EntityColor objects(n,k),255,255,255
-;			Next
-;		EndIf
-;	Next
-;	
-;	For n = 0 To 299		
-;		If xObject#(n) <>0
-;			
-;			tipo=typeObject#(n)
-;			
-;			If objects(tipo,0)>0
-;				aum_object(tipo)=aum_object(tipo)+1
-;				
-;				If aum_object(tipo) > maxObjectXtype Then aum_object(tipo) = maxObjectXtype
-;				
-;				PositionEntity objects(tipo,aum_object(tipo)),xObject#(n),yObject#(n),zObject#(n)
-;				
-;				RotateEntity objects(tipo,aum_object(tipo)),0,rotObject#(n),0
-;				
-;				ScaleEntity objects(tipo,aum_object(tipo)),1+dxObject#(n),1+dyObject#(n),1+dzObject#(n)
-;				
-;				If n=numero_oggetto
-;					EntityColor objects(tipo,aum_object(tipo)),155+Rnd(100),155,155
-;				EndIf
-;			EndIf
-;		EndIf
-;	Next
+	; Nothing to do! LOL!
 	
 End Function
 
 ; Position objects.
 Function posObjects()
 	
-;	If KeyDown(211) Or KeyDown(14) ; se viene premuto CANC o BACK vengono azzerati gli oggetti
-;		xObject#(numero_oggetto) = 0
-;	EndIf
-;	
-;	If addObject = 1 
-;		
-;		CameraPick(camera,MouseX(),MouseY())
-;		;TerrainHeight(plane,PickedX(),PickedZ())
-;		xObject#(numero_oggetto)=PickedX#()
-;		yObject#(numero_oggetto)=PickedY#()
-;		zObject#(numero_oggetto)=PickedZ#()
-;		DebugLog "X: "+PickedX#()
-;		DebugLog "Y: "+PickedY#()
-;		DebugLog "Z: "+PickedZ#()
-;		
-;		If MouseDown(2)
-;			
-;			For n=0 To 1000
-;				If xObject#(n)=0
-;					numero_oggetto = n
-;					
-;				;DebugLog numero_oggetto
-;					n = 100000
-;				EndIf
-;			Next
-;			addObject = 0
-;			
-;		EndIf
-;		
-;	EndIf
+	If addObject = 1
+		
+		CameraPick(camera,MouseX(),MouseY())
+		
+		currentObject = objects(selectedType, objectsPlaced(selectedType))
+		
+		ScaleEntity currentObject, objectsScaleX#(selectedObject), objectsScaleY#(selectedObject), objectsScaleZ#(selectedObject)
+		
+		PositionEntity currentObject, PickedX#(), PickedY#(), PickedZ#()
+		
+		RotateEntity currentObject, 0, objectsRotationY#(selectedObject), 0
+		
+		If MouseDown(3) ; Mouse Wheel Button
+			
+			objectsPositionsX#(selectedObject) = PickedX#()
+			objectsPositionsY#(selectedObject) = PickedY#()
+			objectsPositionsZ#(selectedObject) = PickedZ#()
+			objectsPlaced(selectedType) = objectsPlaced(selectedType) + 1 
+			addObject = 0
+			
+		EndIf
+		
+	EndIf
 	
 End Function
 
@@ -1389,6 +1382,15 @@ Function CreateWindow()
 	
 End Function
 
+Function ResetSliders()
+	
+	GUI_Message(sldObjectXScale, "setvalue", 1)
+	GUI_Message(sldObjectYScale, "setvalue", 1)
+	GUI_Message(sldObjectZScale, "setvalue", 1)
+	GUI_Message(sldObjectRotation, "setvalue", 0)
+	
+End Function
+
 Function UpdateWindow()
 	
 	; MENU
@@ -1456,6 +1458,19 @@ Function UpdateWindow()
 			
 			; Switch to scene editor.
 			
+			; Save the track and convert it to a 3DS mesh.
+			SaveTrack()
+			
+			; Destroy track and markers.
+			DestroyTrack()
+			ResetMarkersData()
+			ResetPoints()
+			
+			; Load 3DS track's mesh.
+			trackMesh = LoadMesh(SavedDataPath$ + Track3DS$)
+			
+			editorState = 1
+			
 		Else 
 			
 			; Switch to track editor.
@@ -1510,36 +1525,53 @@ Function UpdateWindow()
 	; SCENE
 	
 	; Get selected object.
-	selectedType = GUI_Message(lst3DObjects, "getselected")
-	selectedObject = selectedType * MaxObjectPerType + objectsPlaced(selectedType)
+	If (selectedType <> GUI_Message(lst3DObjects, "getselected"))
+		
+		
+		ScaleEntity objects(selectedType,objectsPlaced(selectedType)),1,1,1
+		
+		PositionEntity objects(selectedType,objectsPlaced(selectedType)),0,-1000,-1000
+		
+		RotateEntity objects(selectedType,objectsPlaced(selectedType)),0,0,0
+		
+		selectedType = GUI_Message(lst3DObjects, "getselected")
+		selectedObject = selectedType * MaxObjectPerType + objectsPlaced(selectedType)
+		
+		ResetSliders()
+		
+	EndIf 
 	
 	; Add a new object.
 	If (GUI_AppEvent() = btnAddObject)
 		
 		addObject = 1
 		
+		;ResetSliders()
+		
 	EndIf
 	
 	; 3D OBJECTS
 	
-	xScale = Int(GUI_Message(sldObjectXScale, "getvalue"))
-	yScale = Int(GUI_Message(sldObjectYScale, "getvalue"))
-	zScale = Int(GUI_Message(sldObjectZScale, "getvalue"))
-	rotation = Int(GUI_Message(sldObjectRotation, "getvalue"))
+	xScale# = Int(GUI_Message(sldObjectXScale, "getvalue"))
+	yScale# = Int(GUI_Message(sldObjectYScale, "getvalue"))
+	zScale# = Int(GUI_Message(sldObjectZScale, "getvalue"))
+	rotation# = Int(GUI_Message(sldObjectRotation, "getvalue"))
 	
-	GUI_Message(lblObjectXScaleValue, "settext", "" + xScale + ".0x")
-	GUI_Message(lblObjectYScaleValue, "settext", "" + yScale + ".0x")
-	GUI_Message(lblObjectZScaleValue, "settext", "" + zScale + ".0x")
-	GUI_Message(lblObjectRotationValue, "settext", "" + rotation + "°")
+	GUI_Message(lblObjectXScaleValue, "settext", "" + xScale# + ".0x")
+	GUI_Message(lblObjectYScaleValue, "settext", "" + yScale# + ".0x")
+	GUI_Message(lblObjectZScaleValue, "settext", "" + zScale# + ".0x")
+	GUI_Message(lblObjectRotationValue, "settext", "" + rotation# + "°")
 	
-	objectsScaleX#(selectedObject) = xScale
-	objectsScaleY#(selectedObject) = yScale 
-	objectsScaleZ#(selectedObject) = zScale 
+	objectsScaleX#(selectedObject) = xScale#
+	objectsScaleY#(selectedObject) = yScale# 
+	objectsScaleZ#(selectedObject) = zScale#
+	
+	objectsRotationY#(selectedObject) = rotation#
 	
 End Function
 
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
-;~F#137#159#1A8#1B3#1BD#1D3#1DE#1E7#1F4#1FB#204#20D#21B#22E#250#25B#269#281#2C0#2E6
-;~F#2F7#308#31A#346#350#3EB#400#42C#437#440#447#452#468#492#4AC#515#51B
+;~F#147#169#1B8#1C3#1CD#1E3#1F6#1FF#20C#213#21C#225#233#246#268#274#287#29F#2DE#304
+;~F#315#326#338#364#371#40C#421#44D#458#461#468#473#489#4B3#4CD#4E6#4ED#50E#514#568
 ;~C#Blitz3D
