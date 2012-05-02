@@ -1146,16 +1146,16 @@ Function SaveObjects()
 	
 	For n = 0 To MaxObjectTypes - 1
 		
-		For k = 0 To objectsPlaced(n)
+		For k = 0 To objectsPlaced(n) - 1
 			
 			WriteFloat(file, n)
-			WriteFloat(file, objectsPositionsX#(n))
-			WriteFloat(file, objectsPositionsY#(n))
-			WriteFloat(file, objectsPositionsZ#(n)) 
-			WriteFloat(file, objectsRotationY#(n))
-			WriteFloat(file, objectsScaleX#(n))
-			WriteFloat(file, objectsScaleY#(n))
-			WriteFloat(file, objectsScaleZ#(n))
+			WriteFloat(file, objectsPositionsX#(n,k))
+			WriteFloat(file, objectsPositionsY#(n,k))
+			WriteFloat(file, objectsPositionsZ#(n,k)) 
+			WriteFloat(file, objectsRotationY#(n,k))
+			WriteFloat(file, objectsScaleX#(n,k))
+			WriteFloat(file, objectsScaleY#(n,k))
+			WriteFloat(file, objectsScaleZ#(n,k))
 			
 		Next
 		
@@ -1186,16 +1186,18 @@ Function LoadObjectData()
 			
 			indexObject = ReadFloat(file) 
 			
+			indexObjectPlaced = objectsPlaced(indexObject)
+			
+			objectsPositionsX#(n,indexObjectPlaced) = ReadFloat(file)
+			objectsPositionsY#(n,indexObjectPlaced) = ReadFloat(file) 
+			objectsPositionsZ#(n,indexObjectPlaced) = ReadFloat(file) 
+			objectsRotationY#(n,indexObjectPlaced) = ReadFloat(file) 
+			objectsScaleX#(n,indexObjectPlaced) =  ReadFloat(file) 
+			objectsScaleY#(n,indexObjectPlaced) =  ReadFloat(file) 
+			objectsScaleZ#(n,indexObjectPlaced) =  ReadFloat(file)
+			
+			
 			objectsPlaced(indexObject) = objectsPlaced(indexObject) + 1
-			
-			objectsPositionsX#(n) = ReadFloat(file)
-			objectsPositionsY#(n) = ReadFloat(file) 
-			objectsPositionsZ#(n) = ReadFloat(file) 
-			objectsRotationY(n) = ReadFloat(file) 
-			objectsScaleX#(n) =  ReadFloat(file) 
-			objectsScaleY#(n) =  ReadFloat(file) 
-			objectsScaleZ#(n) =  ReadFloat(file)
-			
 		Next
 		
 		CloseFile file
@@ -1391,17 +1393,17 @@ Function posObjects()
 		
 		currentObject = objects(selectedType, objectsPlaced(selectedType))
 		
-		ScaleEntity currentObject, objectsScaleX#(selectedObject), objectsScaleY#(selectedObject), objectsScaleZ#(selectedObject)
+		ScaleEntity currentObject, objectsScaleX#(selectedType,objectsPlaced(selectedType)), objectsScaleY#(selectedType,objectsPlaced(selectedType)), objectsScaleZ#(selectedType,objectsPlaced(selectedType))
 		
 		PositionEntity currentObject, PickedX#(), PickedY#(), PickedZ#()
 		
-		RotateEntity currentObject, 0, objectsRotationY(selectedObject), 0
+		RotateEntity currentObject, 0, objectsRotationY(selectedType,objectsPlaced(selectedType)), 0
 		
 		If MouseDown(3) ; Mouse Wheel Button
 			
-			objectsPositionsX#(selectedObject) = PickedX#()
-			objectsPositionsY#(selectedObject) = PickedY#()
-			objectsPositionsZ#(selectedObject) = PickedZ#()
+			objectsPositionsX#(selectedType,objectsPlaced(selectedType)) = PickedX#()
+			objectsPositionsY#(selectedType,objectsPlaced(selectedType)) = PickedY#()
+			objectsPositionsZ#(selectedType,objectsPlaced(selectedType)) = PickedZ#()
 			objectsPlaced(selectedType) = objectsPlaced(selectedType) + 1 
 			addObject = 0
 			
@@ -1601,6 +1603,7 @@ Function UpdateWindow()
 			
 		Else 
 			
+			LoadObjectData()
 			; Load scene from file.
 			
 		EndIf 
@@ -1616,7 +1619,7 @@ Function UpdateWindow()
 			SaveMarkers()
 			
 		Else 
-			
+			SaveObjects()
 			; Save scene.
 			
 		EndIf
@@ -1724,7 +1727,8 @@ Function UpdateWindow()
 		RotateEntity objects(selectedType,objectsPlaced(selectedType)),0,0,0
 		
 		selectedType = GUI_Message(lst3DObjects, "getselected")
-		selectedObject = selectedType * MaxObjectPerType + objectsPlaced(selectedType)
+		
+		;selectedObject = selectedType * MaxObjectPerType + objectsPlaced(selectedType)
 		
 		ResetSliders()
 		
@@ -1751,17 +1755,17 @@ Function UpdateWindow()
 	GUI_Message(lblObjectZScaleValue, "settext", "" + zScale# + "x")
 	GUI_Message(lblObjectRotationValue, "settext", "" + rotation# + "°")
 	
-	objectsScaleX#(selectedObject) = xScale#
-	objectsScaleY#(selectedObject) = yScale# 
-	objectsScaleZ#(selectedObject) = zScale#
+	objectsScaleX#(selectedType,objectsPlaced(selectedType)) = xScale#
+	objectsScaleY#(selectedType,objectsPlaced(selectedType)) = yScale# 
+	objectsScaleZ#(selectedType,objectsPlaced(selectedType)) = zScale#
 	
-	objectsRotationY(selectedObject) = rotation#
+	objectsRotationY(selectedType,objectsPlaced(selectedType)) = rotation#
 	
 End Function
 
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
 ;~F#14A#16C#1AC#1B7#1C1#1D7#1EA#1F3#200#207#210#219#227#233#244#266#272#285#29D#2DC
-;~F#302#313#324#336#362#36F#40C#421#44D#454#45F#492#4DD#4E4#4EF#505#52F#549#562#569
-;~F#58A#590#5BA#611
+;~F#302#313#324#336#362#36F#40C#421#44D#454#45F#4DF#4E6#4F1#507#531#54B#564#58C#592
+;~F#5BC#613
 ;~C#Blitz3D
