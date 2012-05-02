@@ -218,15 +218,15 @@ Dim objects(MaxObjectTypes, MaxObjectPerType)
 Dim objectsPlaced(MaxObjectTypes)
 
 ; Objects properties.
-Dim objectsPositionsX#(MaxObjectTypes * MaxObjectPerType)
-Dim objectsPositionsY#(MaxObjectTypes * MaxObjectPerType)
-Dim objectsPositionsZ#(MaxObjectTypes * MaxObjectPerType)
+Dim objectsPositionsX#(MaxObjectTypes, MaxObjectPerType)
+Dim objectsPositionsY#(MaxObjectTypes, MaxObjectPerType)
+Dim objectsPositionsZ#(MaxObjectTypes, MaxObjectPerType)
 
-Dim objectsScaleX#(MaxObjectTypes * MaxObjectPerType)
-Dim objectsScaleY#(MaxObjectTypes * MaxObjectPerType)
-Dim objectsScaleZ#(MaxObjectTypes * MaxObjectPerType)
+Dim objectsScaleX#(MaxObjectTypes, MaxObjectPerType)
+Dim objectsScaleY#(MaxObjectTypes, MaxObjectPerType)
+Dim objectsScaleZ#(MaxObjectTypes, MaxObjectPerType)
 
-Dim objectsRotationY#(MaxObjectTypes * MaxObjectPerType)
+Dim objectsRotationY#(MaxObjectTypes, MaxObjectPerType)
 
 ; Selected type.
 Global selectedType			= 0
