@@ -417,23 +417,8 @@ Function TrackEditorMode()
 	
 	;EndIf 
 	
-	;DebugLog "MARKERS PLACED: " + numMarkersPlaced
-	;DebugLog "CURRENT POINT INDEX: " + currentMarkerIndex
-	
-	; Save/Load by pressing 'S' or 'L'.
-	If KeyDown(31) Then SaveMarkers()
-	If KeyDown(38) Then LoadMarkers()
-	
-	If KeyDown(88)
-		
-		SaveTrack()
-		
-		editorState = 1
-		
-	EndIf 
-	
 	; Update.
-	Update()
+	TrackEditorUpdate()
 	
 End Function
 
@@ -560,9 +545,20 @@ Function InitSkydome()
 	
 End Function
 
+; Reset markers position.
+Function ResetMarkersPosition()
+	
+	For n = 0 To MarkersNumber - 1
+		
+		; Put the marker away.
+		PositionEntity markers(n), 0, -1000, 0
+		
+	Next
+	
+End Function 
+
 ; Init markers' meshes.
 Function InitMarkers()
-	
 	
 	For n = 0 To MarkersNumber - 1
 		
@@ -572,10 +568,9 @@ Function InitMarkers()
 		EntityColor markers(n), 60, 60, 60
 		ScaleEntity markers(n), 5, 5, 5
 		
-		; Put the marker away.
-		PositionEntity markers(n), 0, -1000, 0
-		
 	Next
+	
+	ResetMarkersPosition()
 	
 End Function
 
@@ -879,7 +874,7 @@ Function DestroyTrack()
 End Function 
 	
 ; Update function ('You don't say?!' XD).
-Function Update()
+Function TrackEditorUpdate()
 	
 	If (updateNeeded = True)
 		
@@ -1101,9 +1096,16 @@ End Function
 ; Save the track as a 3DS object.
 Function Save3DS()
 	
+	SaveMesh3DS(trackMesh, SavedDataPath$ + Track3DS$) 
+	
+End Function 
+
+; Create the track and save it as a 3DS object.
+Function CreateAndSave3DS()
+	
 	CreateTrack()
 	
-	SaveMesh3DS(trackMesh, SavedDataPath$ + Track3DS$)
+	Save3DS()
 	
 	DestroyTrack()
 	
@@ -1300,6 +1302,46 @@ Function InitGUI()
 	
 End Function
 
+Function SetGuiState(state)
+	
+	If (state = 0)
+		
+		; Track editor.
+		
+		; Enable:
+		GUI_Message(spnHorizontalScaleFactor, "setenabled", True)
+		GUI_Message(spnVerticalScaleFactor, "setenabled", True)
+		GUI_Message(btnLoadTerrain, "setenabled", True)
+		
+		; Disable:
+		GUI_Message(btnAddObject, "setenabled", False)
+		GUI_Message(sldObjectScale, "setenabled", False)
+		GUI_Message(sldObjectXScale, "setenabled", False)
+		GUI_Message(sldObjectYScale, "setenabled", False)
+		GUI_Message(sldObjectZScale, "setenabled", False)
+		GUI_Message(sldObjectRotation, "setenabled", False)
+		
+	Else 
+		
+		; Scene editor.
+		
+		; Disable:
+		GUI_Message(spnHorizontalScaleFactor, "setenabled", False)
+		GUI_Message(spnVerticalScaleFactor, "setenabled", False)
+		GUI_Message(btnLoadTerrain, "setenabled", False)
+		
+		; Enable:
+		GUI_Message(btnAddObject, "setenabled", True)
+		GUI_Message(sldObjectScale, "setenabled", True)
+		GUI_Message(sldObjectXScale, "setenabled", True)
+		GUI_Message(sldObjectYScale, "setenabled", True)
+		GUI_Message(sldObjectZScale, "setenabled", True)
+		GUI_Message(sldObjectRotation, "setenabled", True)
+		
+	EndIf
+	
+End Function
+
 Function CreateWindow()
 	
 	comWin = GUI_CreateWindow(ScreenWidth - 280, 0, 280, ScreenHeight, "Commands", "", False, False, True, False)
@@ -1382,6 +1424,9 @@ Function CreateWindow()
 	sldObjectRotation = GUI_CreateSlider(grpObjectProperties, 75, 125, 140, 0, 0, 360)
 	lblObjectRotationValue = GUI_CreateLabel(grpObjectProperties, 220, 120, "0°")
 	
+	; Set GUI state.
+	SetGuiState(editorState)
+	
 End Function
 
 Function ResetSliders()
@@ -1404,8 +1449,11 @@ Function UpdateWindow()
 			
 			; New track.
 			
-			; Reset data.
+			; Reset markers.
 			ResetMarkersData()
+			ResetMarkersPosition()
+			
+			ResetPoints()
 			
 			; Reset values.
 			ResetValues()
@@ -1461,22 +1509,40 @@ Function UpdateWindow()
 			; Switch to scene editor.
 			
 			; Save the track and convert it to a 3DS mesh.
-			SaveTrack()
+			If (trackMesh = 0)
+				
+				CreateAndSave3DS()
+				
+			Else 
+				
+				Save3DS()
+				DestroyTrack()
+				
+			EndIf 
 			
-			; Destroy track and markers.
-			DestroyTrack()
+			; Reset markers.
 			ResetMarkersData()
+			ResetMarkersPosition()
+			
 			ResetPoints()
+			
+			; Reset values.
+			ResetValues()
 			
 			; Load 3DS track's mesh.
 			trackMesh = LoadMesh(SavedDataPath$ + Track3DS$)
 			
+			; Set editor's state.
 			editorState = 1
+			
+			; Enable/disable GUI elements.
+			SetGuiState(editorState)
 			
 		Else 
 			
 			; Switch to track editor.
 			
+			editorState = 0
 			
 		EndIf
 		
@@ -1529,7 +1595,6 @@ Function UpdateWindow()
 	; Get selected object.
 	If (selectedType <> GUI_Message(lst3DObjects, "getselected"))
 		
-		
 		ScaleEntity objects(selectedType,objectsPlaced(selectedType)),1,1,1
 		
 		PositionEntity objects(selectedType,objectsPlaced(selectedType)),0,-1000,-1000
@@ -1574,6 +1639,6 @@ End Function
 
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
-;~F#147#169#1B8#1C3#1CD#1E3#1F6#1FF#20C#213#21C#225#233#246#268#274#287#29F#2DE#304
-;~F#315#326#338#364#371#40C#421#44D#458#463#46A#475#48B#4B5#4CF#4E8#4EF#510#516#56A
+;~F#147#169#1A9#1B4#1BE#1D4#1E7#1F0#1FD#204#20D#216#224#230#241#263#26F#282#29A#2D9
+;~F#2FF#310#321#333#35F#36C#407#41C#465#46C#477#48D#4B7#4D1#4EA#4F1#512#597#5A0
 ;~C#Blitz3D
