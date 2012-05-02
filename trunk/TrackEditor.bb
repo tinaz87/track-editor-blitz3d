@@ -232,7 +232,7 @@ Dim objectsRotationY#(MaxObjectTypes, MaxObjectPerType)
 Global selectedType			= 0
 
 ; Selected object.
-Global selectedObject		= 0
+;Global selectedObject		= 0
 
 ; If you're adding a new object to the scene, say 'true'.
 Global addObject 			= 0
@@ -430,7 +430,7 @@ Function SceneEditorMode()
 	
 	MoveCamera()
 	
-	posObjects()
+	PositionObject()
 	
 	UpdateObjects()
 	
@@ -875,7 +875,18 @@ Function DestroyTrack()
 	End If 
 	
 End Function 
+
+; Reset terrain.
+Function ResetTerrain()
 	
+	selectedHeightmap = 0
+	selectedTile = 0
+	
+	terrainHScale = DefaultTerrainHScale
+	terrainVScale = DefaultTerrainVScale
+	
+End Function
+
 ; Update function ('You don't say?!' XD).
 Function TrackEditorUpdate()
 	
@@ -1126,7 +1137,7 @@ Function SaveTrack()
 End Function
 
 ; Save scene objects data.
-Function SaveObjects()
+Function SaveObjectsData()
 	
 	DebugLog("Saving objects data...")
 	
@@ -1170,7 +1181,7 @@ Function SaveObjects()
 End Function
 
 ; Load scene objects data.
-Function LoadObjectData()
+Function LoadObjectsData()
 	
 	DebugLog("Loading objects data...")
 	
@@ -1224,13 +1235,20 @@ Function LoadObjectData()
 End Function
 
 ; Save current heightmap.
-Function SaveHeightMap()
+Function SaveTerrainData()
 	
-	DebugLog("Saving heightmap (" + selectedHeightmap + ")...")
+	DebugLog("Saving terrain data (" + selectedHeightmap + ")...")
 	
 	file = WriteFile(SavedDataPath$ + HeightmapData$)
 	
+	; Heightmap index.
 	WriteInt(file, selectedHeightmap)
+	; Tile index.
+	WriteInt(file, selectedTile)
+	
+	; Scale factors.
+	WriteFloat(file, terrainHScale)
+	WriteFloat(file, terrainVScale)
 	
 	CloseFile file
 	
@@ -1239,16 +1257,23 @@ Function SaveHeightMap()
 End Function
 
 ; Load an heightmap.
-Function LoadHeightMap()
+Function LoadTerrainData()
 	
-	DebugLog("Loading heightmap...")
+	DebugLog("Loading terrain data...")
 	
 	If (FileType(SavedDataPath$ + HeightmapData$))
 	
 		file = ReadFile(SavedDataPath$ + HeightmapData$)
-	
+		
+		; Heightmap index.
 		selectedHeightmap = ReadInt(file)
-	
+		; Tile index.
+		selectedTile = ReadInt(file)
+		
+		; Scale factors.
+		terrainHScale = ReadFloat(file)
+		terrainVScale = ReadFloat(file)
+		
 		CloseFile file
 	
 	EndIf
@@ -1298,6 +1323,27 @@ End Function
 
 
 ; --- EDITOR ------------------------------------------------------------------------
+
+; Reset objects position
+Function ResetObjectsPosition()
+	
+	; Position the objects away and copy them.
+	For n = 0 To MaxObjectTypes - 1
+		
+		If (objects(n, 0) > 0)
+			
+			PositionEntity objects(n, 0), 0, -1000, 0
+			
+			For k = 1 To MaxObjectPerType - 1
+				
+				objects(n, k) = CopyEntity(objects(n, 0))
+				
+			Next 
+			
+		EndIf
+	Next
+	
+End Function 
 
 ; Load objects.
 Function LoadObjects()
@@ -1400,7 +1446,7 @@ Function UpdateObjects()
 End Function
 
 ; Position objects.
-Function posObjects()
+Function PositionObject()
 	
 	If addObject = 1
 		
@@ -1426,6 +1472,27 @@ Function posObjects()
 		
 	EndIf
 	
+End Function
+
+; Reset objects state.
+Function ResetObjects()
+	
+	For n = 0 To MaxObjectTypes - 1 
+		
+		For k = 0 To MaxObjectPerType - 1
+			
+			FreeEntity objects(n, k)
+			
+		Next
+		
+	Next
+	
+	; Clean objects listbox.
+	GUI_Message(lst3DObjects, "clear")
+	
+	; Reload objects and position them away.
+	LoadObjects()
+		
 End Function
 
 ; -----------------------------------------------------------------------------------
@@ -1478,6 +1545,16 @@ Function SetGuiState(state)
 		GUI_Message(sldObjectRotation, "setenabled", True)
 		
 	EndIf
+	
+End Function
+
+Function SetTerrainGUI()
+	
+	GUI_Message(lstHeightmaps, "setvalue", selectedHeightmap)
+	GUI_Message(lstTiles, "setvalue", selectedTile)
+	
+	GUI_Message(spnHorizontalScaleFactor, "setvalue", terrainHScale)
+	GUI_Message(spnVerticalScaleFactor, "setvalue", terrainVScale)
 	
 End Function
 
@@ -1597,12 +1674,19 @@ Function UpdateWindow()
 			; Reset values.
 			ResetValues()
 			
+			; Reset terrain.
+			ResetTerrain()
+			SetTerrainGUI()
+			
+			LoadNewTerrain()
+			
 			; Update the track.
 			updateNeeded = True
 			
 		Else 
 			
 			; New scene.
+			ResetObjects()
 			
 		EndIf 
 		
@@ -1616,10 +1700,15 @@ Function UpdateWindow()
 			; Load track from file.
 			LoadMarkers()
 			
+			LoadTerrainData()
+			SetTerrainGUI()
+			
+			LoadNewTerrain()
+			
 		Else 
 			
-			LoadObjectData()
 			; Load scene from file.
+			LoadObjectsData()
 			
 		EndIf 
 		
@@ -1633,9 +1722,12 @@ Function UpdateWindow()
 			; Save track.
 			SaveMarkers()
 			
+			SaveTerrainData()
+			
 		Else 
-			SaveObjects()
+			
 			; Save scene.
+			SaveObjectsData()
 			
 		EndIf
 		
@@ -1678,7 +1770,12 @@ Function UpdateWindow()
 		Else 
 			
 			; Switch to track editor.
+			SaveObjectsData()
 			
+			; Reset object (put them away).
+			ResetObjects()
+			
+			; Set editor's state.
 			editorState = 0
 			
 		EndIf
@@ -1743,8 +1840,6 @@ Function UpdateWindow()
 		
 		selectedType = GUI_Message(lst3DObjects, "getselected")
 		
-		;selectedObject = selectedType * MaxObjectPerType + objectsPlaced(selectedType)
-		
 		ResetSliders()
 		
 	EndIf 
@@ -1753,8 +1848,6 @@ Function UpdateWindow()
 	If (GUI_AppEvent() = btnAddObject)
 		
 		addObject = 1
-		
-		;ResetSliders()
 		
 	EndIf
 	
@@ -1781,6 +1874,6 @@ End Function
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
 ;~F#14A#16C#1AC#1B7#1C1#1D7#1EA#1F3#200#207#210#219#227#233#244#266#272#285#29D#2DC
-;~F#302#313#324#336#362#36F#40C#421#44D#454#45F#4EE#4F5#500#516#540#55A#573#59B#5A1
-;~F#5CB#622
+;~F#302#313#324#336#362#36F#37A#417#42C#458#45F#46A#473#49F#4D5#4EB#507#50E#519#52F
+;~F#544#56E#588#5A1#5A8#5C5#5DE#5E4#60E#618#66F
 ;~C#Blitz3D
