@@ -75,7 +75,7 @@ Const MaxObjectPerType 		= 20
 
 ; Far away...
 Const FarAwayX#				= 0
-Const FarAwayY#				= -1000
+Const FarAwayY#				= -10000
 Const FarAwayZ#				= 0
 
 ; -----------------------------------------------------------------------------------
@@ -91,6 +91,7 @@ Const TilesPath$ 		= ".\Media\Tiles\"
 Const ObjectsPath$		= ".\Media\3DObjects\"
 Const TexturesPath$		= ".\Media\Textures\"
 Const IconsPath$		= ".\Media\Icons\"
+Const SkyBoxPath$  		= ".\Media\Skydomes\Sunny1\"
 
 ; -----------------------------------------------------------------------------------
 
@@ -190,8 +191,8 @@ Global camera				= 0
 ; Light.
 Global light				= 0
 
-; Skydome.
-Global skydome				= 0
+; Skybox.
+Global skybox				= 0
 
 ; Hey, caught! You've modified the track!
 Global updateNeeded			= False
@@ -310,7 +311,7 @@ CreateWindow()
 LoadResources()
 
 ; Create a skydome.
-;InitSkydome()
+InitSkybox()
 
 ; Init the markers' meshes.
 InitMarkers()
@@ -551,7 +552,7 @@ Function InitLight()
 End Function
 
 ; Create a skydome.
-Function InitSkydome()
+Function InitSkybox()
 	
 ;	skydome = CreateSphere(24) 
 ;	ScaleEntity skydome, 2000, 2000, 2000 
@@ -561,6 +562,54 @@ Function InitSkydome()
 ;	EntityTexture skydome, skydomeTexture 
 	
 ;	CameraRange camera, 1, 3000
+	
+	skybox=CreateMesh()
+ ;front face
+	b=LoadBrush( SkyBoxPath$ + "Sunny1_front.png",49 )
+	s=CreateSurface( skybox,b )
+	AddVertex s,-1,+1,-1,0,0:AddVertex s,+1,+1,-1,1,0
+	AddVertex s,+1,-1,-1,1,1:AddVertex s,-1,-1,-1,0,1
+	AddTriangle s,0,1,2:AddTriangle s,0,2,3
+	FreeBrush b
+ ;left face
+	b=LoadBrush( SkyBoxPath$ +"Sunny1_left.png",49 )
+	s=CreateSurface( skybox,b )
+	AddVertex s,+1,+1,-1,0,0:AddVertex s,+1,+1,+1,1,0
+	AddVertex s,+1,-1,+1,1,1:AddVertex s,+1,-1,-1,0,1
+	AddTriangle s,0,1,2:AddTriangle s,0,2,3
+	FreeBrush b
+ ;back face
+	b=LoadBrush( SkyBoxPath$ +"Sunny1_back.png",49 )
+	s=CreateSurface( skybox,b )
+	AddVertex s,+1,+1,+1,0,0:AddVertex s,-1,+1,+1,1,0
+	AddVertex s,-1,-1,+1,1,1:AddVertex s,+1,-1,+1,0,1
+	AddTriangle s,0,1,2:AddTriangle s,0,2,3
+	FreeBrush b
+ ;right face
+	b=LoadBrush( SkyBoxPath$ +"Sunny1_right.png",49 )
+	s=CreateSurface( skybox,b )
+	AddVertex s,-1,+1,+1,0,0:AddVertex s,-1,+1,-1,1,0
+	AddVertex s,-1,-1,-1,1,1:AddVertex s,-1,-1,+1,0,1
+	AddTriangle s,0,1,2:AddTriangle s,0,2,3
+	FreeBrush b
+ ;top face
+	b=LoadBrush( SkyBoxPath$ +"Sunny1_up.png",49 )
+	s=CreateSurface( skybox,b )
+	AddVertex s,-1,+1,+1,0,1:AddVertex s,+1,+1,+1,0,0
+	AddVertex s,+1,+1,-1,1,0:AddVertex s,-1,+1,-1,1,1
+	AddTriangle s,0,1,2:AddTriangle s,0,2,3
+	FreeBrush b
+ ;bottom face
+	b=LoadBrush( SkyBoxPath$ + "Sunny1_down.png",49 )
+	s=CreateSurface( skybox,b )
+	AddVertex s,-1,-1,-1,1,0:AddVertex s,+1,-1,-1,1,1
+	AddVertex s,+1,-1,+1,0,1:AddVertex s,-1,-1,+1,0,0
+	AddTriangle s,0,1,2:AddTriangle s,0,2,3
+	FreeBrush b
+	ScaleMesh skybox,100,100,100
+	FlipMesh skybox
+	EntityFX skybox,1
+	EntityOrder skybox,10
 	
 End Function
 
@@ -688,6 +737,8 @@ Function MoveCamera()
 		TurnEntity(camera, 0, mouseDeltaX# * -TurnSpeed#, 0, True)
 		
 	EndIf
+	
+	PositionEntity skybox, EntityX(camera), EntityY(camera), EntityZ(camera)
 	
 	mouseOldX = MouseX()
 	mouseOldY = MouseY()
@@ -1985,7 +2036,7 @@ End Function
 
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
-;~F#15A#17C#1BC#1C7#1D1#1E7#1FA#203#210#217#220#229#237#243#254#276#282#295#2B9#2F8
-;~F#31E#32F#340#352#37E#38B#396#443#458#484#48B#496#49F#4CB#501#517#533#53A#545#55B
-;~F#570#59A#5B4#5CD#5D4#5FA#60F#61E#624#650#65A#6B4#6BE
+;~F#15B#17D#1BD#1C8#1D2#1E8#1FB#204#211#218#221#22A#268#274#285#2A7#2B3#2C6#2EC#32B
+;~F#351#362#373#385#3B1#3BE#3C9#476#48B#4B7#4BE#4C9#4D2#4FE#534#54A#566#56D#578#58E
+;~F#5A3#5CD#5E7#600#607#62D#642#651#657#683#68D#6E7#6F1
 ;~C#Blitz3D
