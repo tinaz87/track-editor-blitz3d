@@ -1090,7 +1090,7 @@ Function TrackEditorUpdate()
 			
 			PositionEntity markers(n), markersCoordX#(n), markersCoordY#(n), markersCoordZ#(n)
 			
-			If (n = currentMarkerIndex - 1)
+			If (n = currentMarkerIndex)
 				EntityColor markers(n), 0, 255, 0
 			Else
 				EntityColor markers(n), 255, 0, 0
@@ -1169,6 +1169,8 @@ Function TrackEditorUpdate()
 			
 		Wend
 		
+		DebugLog(numAutoGenPoints " points generated.")
+		
 		;--------------------------------------------------------------------------------------------
 		
 		DebugLog("Generating lateral points...")
@@ -1202,7 +1204,7 @@ Function TrackEditorUpdate()
 			
 			; The y-coordinate is calculalted sampling the terrain.
 			yy# = TerrainY(terrain, xx#, 0, zz#)
-			autoGenPointsSXCoord#(n, 1) = yy#
+			autoGenPointsDXCoord#(n, 1) = yy#
 			
 		Next
 		
@@ -2171,6 +2173,6 @@ End Function
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
 ;~F#15B#17D#1C3#1D4#1E6#200#217#224#235#23C#244#251#25E#29F#2AF#2C4#2EA#2FA#311#337
-;~F#376#39E#3B3#3C4#3DA#3E3#411#422#4F5#50C#539#544#54F#558#584#5BA#5D0#5EC#5F3#5FE
-;~F#614#629#653#66D#686#68D#6B3#6C8#6D7#6DD#709#713#76D#777
+;~F#376#39E#3B3#3C4#3DA#3E3#411#422#4F7#50E#53B#546#551#55A#586#5BC#5D2#5EE#5F5#600
+;~F#616#62B#655#66F#688#68F#6B5#6CA#6D9#6DF#70B#715#76F#779
 ;~C#Blitz3D
