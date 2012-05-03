@@ -174,7 +174,7 @@ Global autoCoordX#			= 0
 Global autoCoordZ#			= 0
 Global autoAngle#			= 0
 
-Global iaPoint				= 0
+Global iaPoint				= 1
 
 ; Meshes.
 Global trackMesh			= 0
@@ -1081,7 +1081,7 @@ End Function
 ; Update function ('You don't say?!' XD).
 Function TrackEditorUpdate()
 	
-	If (updateNeeded = True)
+	If (updateNeeded = True And numMarkersPlaced <> 0)
 		
 		DebugLog("Updating track...")
 		
@@ -1525,6 +1525,14 @@ Function LoadTerrainData()
 	
 End Function
 
+; Load track's 3DS mesh.
+Function Load3DSTrack()
+	
+	trackMesh = LoadMesh(SavedDataPath$ + Track3DS$)
+	EntityPickMode trackMesh, 2
+	
+End Function 
+
 ; -----------------------------------------------------------------------------------
 
 ; Useful function in order to create s curvature.
@@ -1693,7 +1701,6 @@ End Function
 
 ; Position objects.
 Function PositionObject()
-	
 	
 	If (addObject = 1)
 		
@@ -2002,6 +2009,8 @@ Function UpdateWindow()
 			
 			; New track.
 			
+			DestroyTrack()
+			
 			; Reset markers.
 			ResetMarkersData()
 			ResetMarkersPosition()
@@ -2102,7 +2111,7 @@ Function UpdateWindow()
 			ResetValues()
 			
 			; Load 3DS track's mesh.
-			trackMesh = LoadMesh(SavedDataPath$ + Track3DS$)
+			Load3DSTrack()
 			
 			; Set editor's state.
 			editorState = 1
@@ -2297,6 +2306,6 @@ End Function
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
 ;~F#163#185#1CB#1DC#1EE#208#21F#22C#23D#244#24C#259#266#2A7#2B7#2CC#2F2#302#319#33F
-;~F#37E#3A6#3CC#3E2#3EB#419#42A#508#51F#54C#557#562#56B#595#5C8#5DE#5FA#601#60C#622
-;~F#637#664#67E#697#6E9#6F8#727#72D#759#7BF
+;~F#37E#3A6#3BB#3CC#3E2#3EB#419#42A#439#508#51F#54C#557#562#56B#595#5C8#5DE#5F8#602
+;~F#609#614#62A#63F#66C#686#69F#6A6#6F0#6FF#72E#734#760#76A#7C6
 ;~C#Blitz3D
