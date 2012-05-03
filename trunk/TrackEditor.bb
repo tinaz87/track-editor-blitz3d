@@ -1727,6 +1727,12 @@ Function ResetObjects()
 		
 	Next
 	
+	For n = 0 To MaxObjectTypes - 1
+		
+		objectsPlaced(n) = 0
+		
+	Next 
+	
 	; Clean objects listbox.
 	GUI_Message(lst3DObjects, "clear")
 	
@@ -1874,7 +1880,7 @@ Function CreateWindow()
 	grpObjectProperties = GUI_CreateGroupBox(comWin, 10, 540, 270, 150, "Object Properties")
 	
 	lblObjectScale = GUI_CreateLabel(grpObjectProperties, 25, 20, "Scale")
-	sldbjectScale = GUI_CreateSlider(grpObjectProperties, 75, 25, 120, 1, 1, 100)
+	sldObjectScale = GUI_CreateSlider(grpObjectProperties, 75, 25, 120, 1, 1, 100)
 	lblObjectScaleValue = GUI_CreateLabel(grpObjectProperties, 200, 20, "1.0x")
 	chkObjectScale = GUI_CreateCheckBox(grpObjectProperties, 230, 20, "")
 	
@@ -2059,119 +2065,123 @@ Function UpdateWindow()
 	
 	; TRACK
 	
-	GUI_Message(lblCurrentMarkerIndex, "settext", "Current marker index: " + currentMarkerIndex)
-	GUI_Message(lblNumMarkersPlaced, "settext", "Marker placed: " + numMarkersPlaced)
+	If (editorState = 0)
 	
-	; TERRAIN 
-	
-	; Get selected heightmap.
-	If (selectedHeightmap <> GUI_Message(lstHeightmaps, "getselected"))
+		GUI_Message(lblCurrentMarkerIndex, "settext", "Current marker index: " + currentMarkerIndex)
+		GUI_Message(lblNumMarkersPlaced, "settext", "Marker placed: " + numMarkersPlaced)
 		
-		selectedHeightmap = GUI_Message(lstHeightmaps, "getselected")
-		GUI_Message(imgHeightmap, "setimage", heightmapsPaths$(selectedHeightmap))
+		; TERRAIN 
 		
-	EndIf 
-	
-	; Update scale values reading them from the spinners.
-	terrainHScale = Int(GUI_Message(spnHorizontalScaleFactor, "getvalue"))
-	terrainVScale = Int(GUI_Message(spnVerticalScaleFactor, "getvalue"))
-	
-	; Get selected tile.
-	If (selectedTile <> GUI_Message(lstTiles, "getselected"))
-		
-		selectedTile = GUI_Message(lstTiles, "getselected")
-		GUI_Message(imgTile, "setimage", tilesPaths$(selectedTile))
-		
-	EndIf
-	
-	; Load the terrain.
-	If (GUI_AppEvent() = btnLoadTerrain)
-		
-		; Load terrain.
-		LoadNewTerrain()
-		
-	EndIf 
-	
-	; SCENE
-	
-	; Get selected object.
-	If (selectedType <> GUI_Message(lst3DObjects, "getselected"))
-		
-		ResetObject(selectedType, objectsPlaced(selectedType))
-		
-		ResetSliders()
-		
-		selectedType = GUI_Message(lst3DObjects, "getselected")
-		
-	EndIf 
-	
-	; Add a new object.
-	If (GUI_AppEvent() = btnAddObject)
-		
-		addObject = 1
-		
-		ResetSliders()
-		
-	EndIf
-	
-	; 3D OBJECTS
-	
-	If (editorState = 1)
-	
-		If (GUI_Message(chkObjectScale, "getchecked"))
+		; Get selected heightmap.
+		If (selectedHeightmap <> GUI_Message(lstHeightmaps, "getselected"))
 			
+			selectedHeightmap = GUI_Message(lstHeightmaps, "getselected")
+			GUI_Message(imgHeightmap, "setimage", heightmapsPaths$(selectedHeightmap))
+			
+		EndIf 
+		
+		; Update scale values reading them from the spinners.
+		terrainHScale = Int(GUI_Message(spnHorizontalScaleFactor, "getvalue"))
+		terrainVScale = Int(GUI_Message(spnVerticalScaleFactor, "getvalue"))
+		
+		; Get selected tile.
+		If (selectedTile <> GUI_Message(lstTiles, "getselected"))
+			
+			selectedTile = GUI_Message(lstTiles, "getselected")
+			GUI_Message(imgTile, "setimage", tilesPaths$(selectedTile))
+			
+		EndIf
+		
+		; Load the terrain.
+		If (GUI_AppEvent() = btnLoadTerrain)
+			
+			; Load terrain.
+			LoadNewTerrain()
+			
+		EndIf 
+		
+	Else 
+	
+		; SCENE
+		
+		; Get selected object.
+		If (selectedType <> GUI_Message(lst3DObjects, "getselected"))
+			
+			ResetObject(selectedType, objectsPlaced(selectedType))
+			
+			ResetSliders()
+			
+			selectedType = GUI_Message(lst3DObjects, "getselected")
+			
+		EndIf 
+		
+		; Add a new object.
+		If (GUI_AppEvent() = btnAddObject)
+			
+			addObject = 1
+			
+			ResetSliders()
+			
+		EndIf
+		
+		; 3D OBJECTS
+		
+		If (GUI_Message(chkObjectScale, "getchecked"))
+				
 			scale# = (GUI_Message(sldObjectScale, "getvalue"))
 			
-			GUI_Message(sldObjectXScale,"setvalue", scale#)
-			GUI_Message(sldObjectYScale,"setvalue", scale#)
-			GUI_Message(sldObjectZScale,"setvalue", scale#)
+			DebugLog(scale#)
 			
+			GUI_Message(sldObjectXScale, "setvalue", scale#)
+			GUI_Message(sldObjectYScale, "setvalue", scale#)
+			GUI_Message(sldObjectZScale, "setvalue", scale#)
+				
 			GUI_Message(sldObjectScale, "setenabled", True)
 			GUI_Message(sldObjectXScale, "setenabled", False)
 			GUI_Message(sldObjectYScale, "setenabled", False)
 			GUI_Message(sldObjectZScale, "setenabled", False)
-			
+				
 			xScale# = scale# 
 			yScale# = scale# 
 			zScale# = scale# 
-			
-			scaleIsChecked = 0
-			
-		Else
-			
-			If GUI_Message(chkObjectScale, "getchecked") = 0 And scaleIsChecked = 0
 				
+			scaleIsChecked = 0
+				
+		Else
+				
+			If (GUI_Message(chkObjectScale, "getchecked") = 0 And (scaleIsChecked = 0))
+					
 				GUI_Message(sldObjectScale, "setenabled", False)
 				GUI_Message(sldObjectXScale, "setenabled", True)
 				GUI_Message(sldObjectYScale, "setenabled", True)
 				GUI_Message(sldObjectZScale, "setenabled", True)
-				
+					
 				GUI_Message(sldObjectXScale, "setvalue", scale#)
 				GUI_Message(sldObjectYScale, "setvalue", scale#)
 				GUI_Message(sldObjectZScale, "setvalue", scale#)
-				
+					
 				scaleIsChecked = 1
-				
+					
 			EndIf
-			
+				
 			xScale# = (GUI_Message(sldObjectXScale, "getvalue"))
 			yScale# = (GUI_Message(sldObjectYScale, "getvalue"))
 			zScale# = (GUI_Message(sldObjectZScale, "getvalue"))
-			
+				
 		EndIf
-		
+			
 		rotation# = Int(GUI_Message(sldObjectRotation, "getvalue"))
-		
+			
 		GUI_Message(lblObjectScaleValue, "settext",  Left("" + scale#, 4) + "x")
 		GUI_Message(lblObjectXScaleValue, "settext", Left("" + xScale#, 4) + "x")
 		GUI_Message(lblObjectYScaleValue, "settext", Left("" + yScale#, 4) + "x")
 		GUI_Message(lblObjectZScaleValue, "settext", Left("" + zScale#, 4) + "x")
 		GUI_Message(lblObjectRotationValue, "settext", "" + rotation# + "°")
-		
+			
 		objectsScaleX#(selectedType, objectsPlaced(selectedType)) = xScale#
 		objectsScaleY#(selectedType, objectsPlaced(selectedType)) = yScale# 
 		objectsScaleZ#(selectedType, objectsPlaced(selectedType)) = zScale#
-		
+			
 		objectsRotationY(selectedType, objectsPlaced(selectedType)) = rotation#
 		
 	EndIf 
@@ -2182,5 +2192,5 @@ End Function
 ;~IDEal Editor Parameters:
 ;~F#15B#17D#1C3#1D4#1E6#200#217#224#235#23C#244#251#25E#29F#2AF#2C4#2EA#2FA#311#337
 ;~F#376#39E#3B3#3C4#3DA#3E3#411#422#431#4F7#50E#53B#546#551#55A#586#5BC#5D2#5EE#5F5
-;~F#600#616#62B#655#66F#688#68F#6B5#6CA#6D9#6DF#70B#715#76F
+;~F#600#616#62B#655#66F#688#68F#6B5#6D0#6DF#6E5#711#775
 ;~C#Blitz3D
