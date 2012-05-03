@@ -1169,7 +1169,7 @@ Function TrackEditorUpdate()
 			
 		Wend
 		
-		DebugLog(numAutoGenPoints " points generated.")
+		DebugLog(numAutoGenPoints + " points generated.")
 		
 		;--------------------------------------------------------------------------------------------
 		
