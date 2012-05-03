@@ -28,7 +28,7 @@ HidePointer()
 Const GUISkin$ = "MacOS"
 
 ; Max number of points allowed.
-Const MarkersNumber			= 5
+Const MarkersNumber			= 50
 
 ; Max number of auto-generated points.
 Const AutoGenPointsNumber 	= 500
@@ -40,7 +40,7 @@ Const TurnSpeed#			= 0.8
 Const Curvature#			= 2
 
 ; Spline's step.
-Const InterpolationStep#	= 25.0
+Const InterpolationStep#	= 5.0
 
 ; Marker's selection ray.
 Const MarkerSelectionRay#	= 10.0
@@ -2171,6 +2171,6 @@ End Function
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
 ;~F#15B#17D#1C3#1D4#1E6#200#217#224#235#23C#244#251#25E#29F#2AF#2C4#2EA#2FA#311#337
-;~F#376#39E#3B3#3C4#3DA#3E3#411#422#431#4F5#50C#539#544#54F#558#584#5BA#5D0#5EC#5F3
-;~F#5FE#614#629#653#66D#686#68D#6B3#6C8#6D7#6DD#709#713#76D#777
+;~F#376#39E#3B3#3C4#3DA#3E3#411#422#4F5#50C#539#544#54F#558#584#5BA#5D0#5EC#5F3#5FE
+;~F#614#629#653#66D#686#68D#6B3#6C8#6D7#6DD#709#713#76D#777
 ;~C#Blitz3D
