@@ -247,6 +247,10 @@ Dim objectsRotationY#(MaxObjectTypes, MaxObjectPerType)
 ; Object is placed.
 Global objectIsPlaced 		= False
 
+; Placing coordinates.
+Global objectPlacingX#		= 0
+Global objectPlacingY#		= 0
+Global objectPlacingZ#		= 0
 
 ; Selected type.
 Global selectedType			= 0
@@ -1709,9 +1713,13 @@ Function PositionObject()
 			
 			If (objectIsPlaced = False)
 				
+				objectPlacingX# = PickedX#()
+				objectPlacingY# = PickedY#()
+				objectPlacingZ# = PickedZ#()
+				
 				ScaleEntity obj, objectsScaleX#(n, k), objectsScaleY#(n, k), objectsScaleZ#(n, k)
 				
-				PositionEntity obj, PickedX#(), PickedY#(), PickedZ#()
+				PositionEntity obj, objectPlacingX#, objectPlacingY#, objectPlacingZ#
 				
 				RotateEntity obj, 0, objectsRotationY#(n, k), 0
 				
@@ -1719,7 +1727,7 @@ Function PositionObject()
 				
 			EndIf
 			
-			If KeyDown(14) ;BackSpace
+			If (KeyDown(14)) ; BackSpace
 				
 				objectIsPlaced = False
 				
@@ -1727,9 +1735,9 @@ Function PositionObject()
 			
 			If (objectIsPlaced) ; Mouse Wheel Button
 				
-				objectsPositionsX#(n, k) = PickedX#()
-				objectsPositionsY#(n, k) = PickedY#()
-				objectsPositionsZ#(n, k) = PickedZ#()
+				objectsPositionsX#(n, k) = objectPlacingX#
+				objectsPositionsY#(n, k) = objectPlacingY#
+				objectsPositionsZ#(n, k) = objectPlacingZ#
 				
 				ScaleEntity obj, objectsScaleX#(n, k), objectsScaleY#(n, k), objectsScaleZ#(n, k)
 				
@@ -1737,27 +1745,25 @@ Function PositionObject()
 				
 			EndIf
 			
-			If KeyDown(28) And objectIsPlaced ;Enter is keyDown
-				
+			If ((KeyDown(28)) And (objectIsPlaced)) ; Enter is KeyDown
 				
 				objectIsPlaced = False
 				addObject = 0
 				
 				objectsPlaced(selectedType) = objectsPlaced(selectedType) + 1
 				
-				GUI_Message(btnAddObject, "setenabled",True)
+				GUI_Message(btnAddObject, "setenabled", True)
 				
 			EndIf
 			
-			If KeyDown(1) And objectIsPlaced ;Esc is keyDown
-				
+			If ((KeyDown(1)) And (objectIsPlaced)) ; Esc is KeyDown
 				
 				objectIsPlaced = False
 				addObject = 0
 				
 				ResetObject(n,k)
 				
-				GUI_Message(btnAddObject, "setenabled",True)
+				GUI_Message(btnAddObject, "setenabled", True)
 				
 			EndIf
 			
@@ -2189,7 +2195,6 @@ Function UpdateWindow()
 			
 			DebugLog("Object selected: Type " + selectedType + ", No. " + objectsPlaced(selectedType) + ".")
 			
-			
 			If( objectIsPlaced = False )
 				
 				;object follow the arrow so we can change the object at fly
@@ -2208,9 +2213,7 @@ Function UpdateWindow()
 				
 				ResetObject(selectedType, objectsPlaced(selectedType))
 				
-				
 			EndIf
-			
 			
 			ResetSliders()
 			
@@ -2220,7 +2223,6 @@ Function UpdateWindow()
 		
 		; Add a new object.
 		If (GUI_AppEvent() = btnAddObject)
-			
 			
 			If ( objectsPlaced(selectedType) + 1 ) < MaxObjectPerType
 				
@@ -2299,7 +2301,7 @@ End Function
 
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
-;~F#163#185#1CB#1DC#1EE#208#21F#22C#23D#244#24C#259#266#2A7#2B7#2CC#2F2#302#319#33F
-;~F#37E#3A6#3BB#3CC#3E2#3EB#419#42A#439#502#519#546#551#55C#565#58F#5C2#5D8#5F2#5FC
-;~F#603#60E#624#639#666#680#699#6A0#6EA#6F9#728#72E#75A#764#7C0#7CA
+;~F#167#189#1CF#1E0#1F2#20C#223#230#241#248#250#25D#26A#2AB#2BB#2D0#2F6#306#31D#343
+;~F#382#3AA#3BF#3D0#3E6#3EF#41D#42E#43D#506#51D#54A#555#560#569#593#5C6#5DC#5F6#600
+;~F#607#612#628#63D#66A#684#69D#6A4#6F0#6FF#72E#734#760#76A#7C6#7D0
 ;~C#Blitz3D
