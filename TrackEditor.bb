@@ -1897,23 +1897,25 @@ Function CreateWindow()
 	
 	grpObjectProperties = GUI_CreateGroupBox(comWin, 10, 540, 270, 150, "Object Properties")
 	
+	;MODIFICA ho messo 10 al posto di 100 negli sld e 0.01 al posto di 1
 	lblObjectScale = GUI_CreateLabel(grpObjectProperties, 25, 20, "Scale")
-	sldObjectScale = GUI_CreateSlider(grpObjectProperties, 75, 25, 120, 1, 1, 100)
+	sldObjectScale = GUI_CreateSlider(grpObjectProperties, 75, 25, 120, 1, 0.01, 10)
 	lblObjectScaleValue = GUI_CreateLabel(grpObjectProperties, 200, 20, "1.0x")
 	chkObjectScale = GUI_CreateCheckBox(grpObjectProperties, 230, 20, "")
 	
 	GUI_Message(sldObjectScale, "setvalue", scale#)
 	
+	
 	lblObjectXScale = GUI_CreateLabel(grpObjectProperties, 25, 45, "X Scale")
-	sldObjectXScale = GUI_CreateSlider(grpObjectProperties, 75, 50, 120, 1, 1, 100)
+	sldObjectXScale = GUI_CreateSlider(grpObjectProperties, 75, 50, 120, 1, 0.01, 10)
 	lblObjectXScaleValue = GUI_CreateLabel(grpObjectProperties, 200, 45, "1.0x")
 	
 	lblObjectYScale = GUI_CreateLabel(grpObjectProperties, 25, 70, "Y Scale")
-	sldObjectYScale = GUI_CreateSlider(grpObjectProperties, 75, 75, 120, 1, 1, 100)
+	sldObjectYScale = GUI_CreateSlider(grpObjectProperties, 75, 75, 120, 1, 0.01, 10)
 	lblObjectYScaleValue = GUI_CreateLabel(grpObjectProperties, 200, 70, "1.0x")
 	
 	lblObjectZScale = GUI_CreateLabel(grpObjectProperties, 25, 95, "Z Scale")
-	sldObjectZScale = GUI_CreateSlider(grpObjectProperties, 75, 100, 120, 1, 1, 100)
+	sldObjectZScale = GUI_CreateSlider(grpObjectProperties, 75, 100, 120, 1, 0.01, 10)
 	lblObjectZScaleValue = GUI_CreateLabel(grpObjectProperties, 200, 95, "1.0x")
 	
 	lblObjectRotation = GUI_CreateLabel(grpObjectProperties, 25, 120, "Rotation")
@@ -2213,5 +2215,5 @@ End Function
 ;~IDEal Editor Parameters:
 ;~F#15B#17D#1C3#1D4#1E6#200#217#224#235#23C#244#251#25E#29F#2AF#2C4#2EA#2FA#311#337
 ;~F#376#39E#3B3#3C4#3DA#3E3#411#422#431#4F7#50E#53B#546#551#5B7#5CD#5E9#5F0#5FB#611
-;~F#653#66D#686#68D#6F1#6F7#723#72D#787#791
+;~F#626#653#66D#686#68D#6B3#6C2#6F1#6F7#723#789
 ;~C#Blitz3D
