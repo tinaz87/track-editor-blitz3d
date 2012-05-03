@@ -1583,12 +1583,14 @@ Function LoadObjects()
 		If f$ = "" Then Exit
 		ext$ = Right(f$, 3)
 		If ((FileType(ObjectsPath$ + f$) = 1) And (f$ <> ".") And (f$ <> "..") And (ext$ = "3ds" Or ext$ = "b3d")) Then
+			
 			filename$ = Left(f$, Len(f$) - 4)
 			GUI_Message(lst3DObjects, "additem", -1, filename$)
 			file$ = ObjectsPath$ + f$
 			objects(index, 0) = LoadMesh(file$)
 			
 			index = index + 1
+			
 		EndIf
 		
 	Forever
@@ -1609,6 +1611,7 @@ Function LoadObjects()
 			Next 
 			
 		EndIf
+		
 	Next
 	
 End Function
@@ -1712,11 +1715,15 @@ End Function
 ; Reset a single object (position, scale and orientation).
 Function ResetObject(n, k)
 	
-	ScaleEntity objects(n, k), 1, 1, 1
+	If (objects(n , k) > 0)
 	
-	PositionEntity objects(n, k), FarAwayX#, FarAwayY#, FarAwayZ#
-	
-	RotateEntity objects(n, k), 0, 0, 0
+		ScaleEntity objects(n, k), 1, 1, 1
+		
+		PositionEntity objects(n, k), FarAwayX#, FarAwayY#, FarAwayZ#
+		
+		RotateEntity objects(n, k), 0, 0, 0
+		
+	EndIf 
 	
 End Function 
 
@@ -1948,10 +1955,10 @@ Function UpdateWindow()
 			; Reset values.
 			ResetValues()
 			
-			; Reset terrain.
+			; Reset terrain...
 			ResetTerrain()
 			SetTerrainGUI()
-			
+			; ...and reload it.
 			LoadNewTerrain()
 			
 			; Update the track.
@@ -1975,6 +1982,7 @@ Function UpdateWindow()
 			LoadMarkersData()
 			
 			LoadTerrainData()
+			
 			SetTerrainGUI()
 			
 			LoadNewTerrain()
@@ -2204,6 +2212,6 @@ End Function
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
 ;~F#15B#17D#1C3#1D4#1E6#200#217#224#235#23C#244#251#25E#29F#2AF#2C4#2EA#2FA#311#337
-;~F#376#39E#3B3#3C4#3DA#3E3#411#422#431#4F7#50E#53B#546#551#55A#584#5B7#5CD#5E9#5F0
-;~F#5FB#611#626#650#66A#683#68A#6B0#6BB#6EA#6F0#71C#726#780#78A
+;~F#376#39E#3B3#3C4#3DA#3E3#411#422#431#4F7#50E#53B#546#551#5B7#5CD#5E9#5F0#5FB#611
+;~F#653#66D#686#68D#6F1#6F7#723#72D#787#791
 ;~C#Blitz3D
