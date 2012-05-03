@@ -25,7 +25,7 @@ HidePointer()
 ; --- CONST VALUES ------------------------------------------------------------------
 
 ; GUI skin.
-Const GUISkin$ = "MacOS"
+Const GUISkin$ 				= "MacOS"
 
 ; Max number of points allowed.
 Const MarkersNumber			= 50
@@ -2048,6 +2048,9 @@ Function UpdateWindow()
 			
 		Else 
 			
+			; Reset object (put them away).
+			ResetObjects()
+			
 			; Load scene from file.
 			LoadObjectsData()
 			
@@ -2298,5 +2301,5 @@ End Function
 ;~IDEal Editor Parameters:
 ;~F#163#185#1CB#1DC#1EE#208#21F#22C#23D#244#24C#259#266#2A7#2B7#2CC#2F2#302#319#33F
 ;~F#37E#3A6#3BB#3CC#3E2#3EB#419#42A#439#502#519#546#551#55C#565#58F#5C2#5D8#5F2#5FC
-;~F#603#60E#624#639#666#680#699#6A0#6EA#6F9#728#72E#75A#764#7C0
+;~F#603#60E#624#639#666#680#699#6A0#6EA#6F9#728#72E#75A#764#7C0#7CA
 ;~C#Blitz3D
