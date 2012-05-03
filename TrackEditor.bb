@@ -2102,6 +2102,8 @@ Function UpdateWindow()
 		; Get selected object.
 		If (selectedType <> GUI_Message(lst3DObjects, "getselected"))
 			
+			DebugLog("Object selected: Type " + selectedType + ", No. " + objectsPlaced(selectedType) + ".")
+			
 			ResetObject(selectedType, objectsPlaced(selectedType))
 			
 			ResetSliders()
@@ -2187,5 +2189,5 @@ End Function
 ;~IDEal Editor Parameters:
 ;~F#15B#17D#1C3#1D4#1E6#200#217#224#235#23C#244#251#25E#29F#2AF#2C4#2EA#2FA#311#337
 ;~F#376#39E#3B3#3C4#3DA#3E3#411#422#431#4F7#50E#53B#546#551#55A#584#5B7#5CD#5E9#5F0
-;~F#5FB#611#626#650#66A#683#68A#6B0#6CB#6DA#6E0#70C#716#770
+;~F#5FB#611#626#650#66A#683#68A#6B0#6DA#6E0#70C#716#770
 ;~C#Blitz3D
