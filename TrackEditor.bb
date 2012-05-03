@@ -1386,20 +1386,18 @@ Function SaveObjectsData()
 	; Write the file!
 	WriteInt(file, nrObject)
 	
-	
-	
 	For n = 0 To MaxObjectTypes - 1
 		
 		For k = 0 To objectsPlaced(n) - 1
 			
 			WriteInt(file, n)
-			WriteFloat(file, objectsPositionsX#(n,k))
-			WriteFloat(file, objectsPositionsY#(n,k))
-			WriteFloat(file, objectsPositionsZ#(n,k)) 
-			WriteFloat(file, objectsRotationY#(n,k))
-			WriteFloat(file, objectsScaleX#(n,k))
-			WriteFloat(file, objectsScaleY#(n,k))
-			WriteFloat(file, objectsScaleZ#(n,k))
+			WriteFloat(file, objectsPositionsX#(n, k))
+			WriteFloat(file, objectsPositionsY#(n, k))
+			WriteFloat(file, objectsPositionsZ#(n, k)) 
+			WriteFloat(file, objectsRotationY#(n, k))
+			WriteFloat(file, objectsScaleX#(n, k))
+			WriteFloat(file, objectsScaleY#(n, k))
+			WriteFloat(file, objectsScaleZ#(n, k))
 			
 		Next
 		
@@ -1407,7 +1405,7 @@ Function SaveObjectsData()
 	
 	CloseFile file
 	
-	DebugLog("DONE! (" + nrObject + " objects saved)")
+	DebugLog("Done (" + nrObject + " objects saved).")
 	
 End Function
 
@@ -1426,42 +1424,39 @@ Function LoadObjectsData()
 		nrObjects = ReadInt(file)
 		
 		; Read!
-		For n = 0 To nrObjects - 1
+		For i = 0 To nrObjects - 1
 			
+			n = ReadInt(file) 
 			
-			indexObject = ReadInt(file) 
+			k = objectsPlaced(n)
 			
-			indexObjectPlaced = objectsPlaced(indexObject)
+			currentObject = objects(n, k)
 			
-			currentObject = objects(indexObject,indexObjectPlaced)
+			objectsPositionsX#(n, k) = ReadFloat(file)
+			objectsPositionsY#(n, k) = ReadFloat(file) 
+			objectsPositionsZ#(n, k) = ReadFloat(file) 
 			
+			objectsRotationY#(n, k) = ReadFloat(file) 
 			
+			objectsScaleX#(n, k) =  ReadFloat(file) 
+			objectsScaleY#(n, k) =  ReadFloat(file) 
+			objectsScaleZ#(n, k) =  ReadFloat(file)
 			
-			objectsPositionsX#(n,indexObjectPlaced) = ReadFloat(file)
-			objectsPositionsY#(n,indexObjectPlaced) = ReadFloat(file) 
-			objectsPositionsZ#(n,indexObjectPlaced) = ReadFloat(file) 
-			objectsRotationY#(n,indexObjectPlaced) = ReadFloat(file) 
-			objectsScaleX#(n,indexObjectPlaced) =  ReadFloat(file) 
-			objectsScaleY#(n,indexObjectPlaced) =  ReadFloat(file) 
-			objectsScaleZ#(n,indexObjectPlaced) =  ReadFloat(file)
+			PositionEntity currentObject, objectsPositionsX#(n, k),objectsPositionsY#(n, k),objectsPositionsZ#(n, k)
 			
+			ScaleEntity currentObject,objectsScaleX#(n, k),objectsScaleY#(n, k),objectsScaleZ#(n, k)
 			
-			PositionEntity currentObject,objectsPositionsX#(n,indexObjectPlaced),objectsPositionsY#(n,indexObjectPlaced),objectsPositionsZ#(n,indexObjectPlaced)
+			RotateEntity currentObject, 0, objectsRotationY(n, k), 0
 			
-			ScaleEntity currentObject,objectsScaleX#(n,indexObjectPlaced),objectsScaleY#(n,indexObjectPlaced),objectsScaleZ#(n,indexObjectPlaced)
+			objectsPlaced(n) = objectsPlaced(n) + 1
 			
-			RotateEntity currentObject,0,objectsRotationY(n,indexObjectPlaced),0
-			
-			
-			
-			objectsPlaced(indexObject) = objectsPlaced(indexObject) + 1
 		Next
 		
 		CloseFile file
 		
 	EndIf
 	
-	DebugLog("DONE! (" + nrObjects + " objects loaded)")
+	DebugLog("Done (" + nrObjects + " objects loaded).")
 	
 End Function
 
@@ -2191,6 +2186,6 @@ End Function
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
 ;~F#15B#17D#1C3#1D4#1E6#200#217#224#235#23C#244#251#25E#29F#2AF#2C4#2EA#2FA#311#337
-;~F#376#39E#3B3#3C4#3DA#3E3#411#422#431#4F7#50E#53B#546#551#55A#586#5BC#5D2#5EE#5F5
-;~F#600#616#62B#655#66F#688#68F#6B5#6D0#6DF#6E5#711#775
+;~F#376#39E#3B3#3C4#3DA#3E3#411#422#431#4F7#50E#53B#546#551#55A#584#5B7#5CD#5E9#5F0
+;~F#5FB#611#626#650#66A#683#68A#6B0#6CB#6DA#6E0#70C#716#770
 ;~C#Blitz3D
