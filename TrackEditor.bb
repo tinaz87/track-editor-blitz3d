@@ -240,7 +240,7 @@ Dim objectsScaleZ#(MaxObjectTypes, MaxObjectPerType)
 
 Dim objectsRotationY#(MaxObjectTypes, MaxObjectPerType)
 
-; MODIFICA
+; Object is placed.
 Global objectIsPlaced = False
 
 
@@ -1681,7 +1681,7 @@ End Function
 ; Position objects.
 Function PositionObject()
 	
-	;MODIFICA
+	
 	If (addObject = 1)
 		
 		currentPick = CameraPick(camera, MouseX(), MouseY())
@@ -1938,7 +1938,7 @@ Function CreateWindow()
 	
 	grpObjectProperties = GUI_CreateGroupBox(comWin, 10, 540, 270, 150, "Object Properties")
 	
-	;MODIFICA ho messo 10 al posto di 100 negli sld e 0.01 al posto di 1
+	
 	lblObjectScale = GUI_CreateLabel(grpObjectProperties, 25, 20, "Scale")
 	sldObjectScale = GUI_CreateSlider(grpObjectProperties, 75, 25, 120, 1, 0.01, 10)
 	lblObjectScaleValue = GUI_CreateLabel(grpObjectProperties, 200, 20, "1.0x")
@@ -2171,7 +2171,7 @@ Function UpdateWindow()
 			
 			DebugLog("Object selected: Type " + selectedType + ", No. " + objectsPlaced(selectedType) + ".")
 			
-			;MODIFICA
+			
 			If( objectIsPlaced = False )
 				
 				;object follow the arrow so we can change the object at fly
@@ -2203,12 +2203,12 @@ Function UpdateWindow()
 		; Add a new object.
 		If (GUI_AppEvent() = btnAddObject)
 			
-			;MODIFICA
+			
 			If ( objectsPlaced(selectedType) + 1 ) < MaxObjectPerType
 				
 				addObject = 1
 				
-				;MODIFICA
+				
 				GUI_Message(btnAddObject, "setenabled",False)
 				
 				ResetSliders()
