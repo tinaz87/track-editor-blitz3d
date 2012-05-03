@@ -240,6 +240,10 @@ Dim objectsScaleZ#(MaxObjectTypes, MaxObjectPerType)
 
 Dim objectsRotationY#(MaxObjectTypes, MaxObjectPerType)
 
+; MODIFICA
+Global objectIsPlaced = False
+
+
 ; Selected type.
 Global selectedType			= 0
 
@@ -1582,7 +1586,7 @@ Function LoadObjects()
 		f$ = NextFile(dir)
 		If f$ = "" Then Exit
 		ext$ = Right(f$, 3)
-		If ((FileType(ObjectsPath$ + f$) = 1) And (f$ <> ".") And (f$ <> "..") And (ext$ = "3ds" Or ext$ = "b3d")) Then
+		If ((FileType(ObjectsPath$ + f$) = 1) And (f$ <> ".") And (f$ <> "..") And (Lower$(ext$) = "3ds" Or Lower$(ext$) = "b3d")) Then
 			
 			filename$ = Left(f$, Len(f$) - 4)
 			GUI_Message(lst3DObjects, "additem", -1, filename$)
@@ -1677,6 +1681,7 @@ End Function
 ; Position objects.
 Function PositionObject()
 	
+	;MODIFICA
 	If (addObject = 1)
 		
 		currentPick = CameraPick(camera, MouseX(), MouseY())
@@ -1686,23 +1691,59 @@ Function PositionObject()
 			n = selectedType
 			k = objectsPlaced(selectedType)
 			
-			obj = objects(selectedType, objectsPlaced(selectedType))
+			obj = objects(n, k)
 			
-			ScaleEntity obj, objectsScaleX#(n, k), objectsScaleY#(n, k), objectsScaleZ#(n, k)
+			If (objectIsPlaced = False)
+				
+				ScaleEntity obj, objectsScaleX#(n, k), objectsScaleY#(n, k), objectsScaleZ#(n, k)
+				
+				PositionEntity obj, PickedX#(), PickedY#(), PickedZ#()
+				
+				RotateEntity obj, 0, objectsRotationY#(n, k), 0
+				
+				objectIsPlaced = MouseDown(3)
+				
+			EndIf
 			
-			PositionEntity obj, PickedX#(), PickedY#(), PickedZ#()
+			If KeyDown(14) ;BackSpace
+				
+				objectIsPlaced = False
+				
+			EndIf
 			
-			RotateEntity obj, 0, objectsRotationY#(n, k), 0
-			
-			If (MouseDown(3)) ; Mouse Wheel Button
+			If (objectIsPlaced) ; Mouse Wheel Button
 				
 				objectsPositionsX#(n, k) = PickedX#()
 				objectsPositionsY#(n, k) = PickedY#()
 				objectsPositionsZ#(n, k) = PickedZ#()
 				
-				objectsPlaced(selectedType) = objectsPlaced(selectedType) + 1 
+				ScaleEntity obj, objectsScaleX#(n, k), objectsScaleY#(n, k), objectsScaleZ#(n, k)
 				
+				RotateEntity obj, 0, objectsRotationY#(n, k), 0
+				
+			EndIf
+			
+			If KeyDown(28) And objectIsPlaced ;Enter is keyDown
+				
+				
+				objectIsPlaced = False
 				addObject = 0
+				
+				objectsPlaced(selectedType) = objectsPlaced(selectedType) + 1
+				
+				GUI_Message(btnAddObject, "setenabled",True)
+				
+			EndIf
+			
+			If KeyDown(1) And objectIsPlaced ;Esc is keyDown
+				
+				
+				objectIsPlaced = False
+				addObject = 0
+				
+				ResetObject(n,k)
+				
+				GUI_Message(btnAddObject, "setenabled",True)
 				
 			EndIf
 			
@@ -2130,7 +2171,28 @@ Function UpdateWindow()
 			
 			DebugLog("Object selected: Type " + selectedType + ", No. " + objectsPlaced(selectedType) + ".")
 			
-			ResetObject(selectedType, objectsPlaced(selectedType))
+			;MODIFICA
+			If( objectIsPlaced = False )
+				
+				;object follow the arrow so we can change the object at fly
+				
+				If objectsPlaced(selectedType) <> MaxObjectPerType - 1
+					ResetObject(selectedType, objectsPlaced(selectedType))
+				EndIf
+				
+			Else
+				;object is placed but we want to change object mesh 
+				newSelectedType = GUI_Message(lst3DObjects, "getselected")
+				
+				obj = objects(selectedType, objectsPlaced(selectedType))
+				
+				PositionEntity objects(newSelectedType,objectsPlaced(newSelectedType)),EntityX(obj),EntityY(obj),EntityZ(obj)
+				
+				ResetObject(selectedType, objectsPlaced(selectedType))
+				
+				
+			EndIf
+			
 			
 			ResetSliders()
 			
@@ -2141,9 +2203,17 @@ Function UpdateWindow()
 		; Add a new object.
 		If (GUI_AppEvent() = btnAddObject)
 			
-			addObject = 1
-			
-			ResetSliders()
+			;MODIFICA
+			If ( objectsPlaced(selectedType) + 1 ) < MaxObjectPerType
+				
+				addObject = 1
+				
+				;MODIFICA
+				GUI_Message(btnAddObject, "setenabled",False)
+				
+				ResetSliders()
+				
+			EndIf
 			
 		EndIf
 		
@@ -2213,7 +2283,7 @@ End Function
 
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
-;~F#15B#17D#1C3#1D4#1E6#200#217#224#235#23C#244#251#25E#29F#2AF#2C4#2EA#2FA#311#337
-;~F#376#39E#3B3#3C4#3DA#3E3#411#422#431#4F7#50E#53B#546#551#5B7#5CD#5E9#5F0#5FB#611
-;~F#626#653#66D#686#68D#6B3#6C2#6F1#6F7#723#789
+;~F#15F#181#1C7#1D8#1EA#204#21B#228#239#240#248#255#262#2A3#2B3#2C8#2EE#2FE#315#33B
+;~F#37A#3A2#3B7#3C8#3DE#3E7#415#426#435#4FB#512#53F#54A#555#55E#588#5BB#5D1#5ED#5F4
+;~F#5FF#615#62A#657#671#68A#6DC#6EB#71A#720#74C#7B2
 ;~C#Blitz3D
