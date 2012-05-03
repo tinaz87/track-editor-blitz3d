@@ -42,6 +42,10 @@ Const Curvature#			= 2
 ; Spline's step.
 Const InterpolationStep#	= 5.0
 
+; IA Values.
+Const IAAngleDifference#	= 5.0
+Const IADistance#			= 10.0
+
 ; Marker's selection ray.
 Const MarkerSelectionRay#	= 10.0
 
@@ -951,7 +955,7 @@ End Function
 ; Reset values.
 Function ResetValues()
 	
-	iaPoint 			= 0
+	iaPoint 			= 1
 	
 	numAutoGenPoints 	= 0
 	
@@ -1106,70 +1110,67 @@ Function TrackEditorUpdate()
 		
 		DebugLog("Generating spline's main points...")
 		
-		While (iaPoint <= numMarkersPlaced)
+		While (iaPoint <= numMarkersPlaced + 1)
 			
-			If (iaPoint = numMarkersPlaced)
-				
-				xx# = autoCoordX# - markersCoordX#(0)
-				zz# = autoCoordZ# - markersCoordZ#(0)
-				
-			Else
-				
-				xx# = autoCoordX# - markersCoordX#(iaPoint)
-				zz# = autoCoordZ# - markersCoordZ#(iaPoint)
-				
-			EndIf 
-				
-			Distance# = Sqr#(xx# * xx# + zz# * zz#)
+			currentPoint = iaPoint Mod numMarkersPlaced
+			
+			xx# = autoCoordX# - markersCoordX#(currentPoint)
+			zz# = autoCoordZ# - markersCoordZ#(currentPoint)
+			
+			d# = Sqr#(xx# * xx# + zz# * zz#)
 			angle# = 270 - ATan2#(xx#, zz#)
 			difference# = AngleDifference#(autoAngle#, angle#)
 			
-			If (difference# < -5)
+			If (difference# < -IAAngleDifference#)
 				autoAngle# = autoAngle# - Curvature#
 			EndIf 
 			
-			If (difference# > 5)
+			If (difference# > IAAngleDifference#)
 				autoAngle# = autoAngle# + Curvature#
 			EndIf 
 			
-			If (Abs(difference#) < 5)
+			If (Abs(difference#) < IAAngleDifference#)
 				autoAngle# = angle#
 			EndIf 
 			
-			If (Distance# > 10)
+			If (d# > IADistance#)
+				
 				autoCoordX# = autoCoordX# + Cos#(autoAngle#)
 				autoCoordZ# = autoCoordZ# + Sin#(autoAngle#)
+				
+				ciclesCounter = ciclesCounter + 1
+				
+				If (iaPoint > 1 And ciclesCounter > InterpolationStep#)
+					
+					ciclesCounter = 0
+					
+					autoGenPointsCoordX#(numAutoGenPoints) = autoCoordX#
+					autoGenPointsCoordZ#(numAutoGenPoints) = autoCoordZ#
+					
+					; The y-coordinate is calculalted sampling the terrain.
+					y# = TerrainY(terrain, autoCoordX#, 0, autoCoordZ#)
+					autoGenPointsCoordY#(numAutoGenPoints) = y#
+					
+					; PositionEntity 	autoGenPoints(numAutoGenPoints), 
+					;					autoGenPointsCoordX#(numAutoGenPoints), 
+					;					0, 
+					;					autoGenPointsCoordZ#(numAutoGenPoints)
+					
+					numAutoGenPoints = numAutoGenPoints + 1 
+					
+					If (numAutoGenPoints > AutoGenPointsNumber - 1)
+						
+						numAutoGenPoints = AutoGenPointsNumber - 1
+						
+					End If 
+					
+				EndIf 
+				
 			Else
+				
 				iaPoint = iaPoint + 1
+				
 			End If 
-			
-			ciclesCounter = ciclesCounter + 1
-			
-			If (ciclesCounter > InterpolationStep#)
-				
-				ciclesCounter = 0
-				
-				autoGenPointsCoordX#(numAutoGenPoints) = autoCoordX#
-				autoGenPointsCoordZ#(numAutoGenPoints) = autoCoordZ#
-				
-				; The y-coordinate is calculalted sampling the terrain.
-				y# = TerrainY(terrain, autoCoordX#, 0, autoCoordZ#)
-				autoGenPointsCoordY#(numAutoGenPoints) = y#
-				
-				; PositionEntity 	autoGenPoints(numAutoGenPoints), 
-				;					autoGenPointsCoordX#(numAutoGenPoints), 
-				;					0, 
-				;					autoGenPointsCoordZ#(numAutoGenPoints)
-				
-				numAutoGenPoints = numAutoGenPoints + 1 
-				
-				If (numAutoGenPoints > AutoGenPointsNumber - 1)
-					
-					numAutoGenPoints = AutoGenPointsNumber - 1
-					
-				End If 
-				
-			EndIf 
 			
 		Wend
 		
@@ -1182,9 +1183,21 @@ Function TrackEditorUpdate()
 		; Calc. sx and dx points.
 		For n = 0 To numAutoGenPoints - 1
 			
-			xx# = autoGenPointsCoordX#(n) - autoGenPointsCoordX#(n + 1)
-			zz# = autoGenPointsCoordZ#(n) - autoGenPointsCoordZ#(n + 1)
+			xx# = 0
+			yy# = 0
 			
+			If (n = numAutoGenPoints - 1)
+				
+				xx# = autoGenPointsCoordX#(n) - autoGenPointsCoordX#(0)
+				zz# = autoGenPointsCoordZ#(n) - autoGenPointsCoordZ#(0)
+				
+			Else 
+			
+				xx# = autoGenPointsCoordX#(n) - autoGenPointsCoordX#(n + 1)
+				zz# = autoGenPointsCoordZ#(n) - autoGenPointsCoordZ#(n + 1)
+				
+			EndIf 
+				
 			angles#(n) = 270 - ATan2#(xx#, zz#)
 			
 			; Set SX point.
@@ -2005,7 +2018,7 @@ Function UpdateWindow()
 			LoadNewTerrain()
 			
 			; Update the track.
-			updateNeeded = True
+			; updateNeeded = True
 			
 		Else 
 			
@@ -2283,7 +2296,7 @@ End Function
 
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
-;~F#15F#181#1C7#1D8#1EA#204#21B#228#239#240#248#255#262#2A3#2B3#2C8#2EE#2FE#315#33B
-;~F#37A#3A2#3B7#3C8#3DE#3E7#415#426#435#4FB#512#53F#54A#555#55E#588#5BB#5D1#5ED#5F4
-;~F#5FF#615#62A#657#671#68A#6DC#6EB#71A#720#74C#7B2
+;~F#163#185#1CB#1DC#1EE#208#21F#22C#23D#244#24C#259#266#2A7#2B7#2CC#2F2#302#319#33F
+;~F#37E#3A6#3CC#3E2#3EB#419#42A#508#51F#54C#557#562#56B#595#5C8#5DE#5FA#601#60C#622
+;~F#637#664#67E#697#6E9#6F8#727#72D#759#7BF
 ;~C#Blitz3D
