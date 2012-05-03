@@ -1709,33 +1709,6 @@ Function PositionObject()
 	
 End Function
 
-; Reset objects state.
-Function ResetObjects()
-	
-	For n = 0 To MaxObjectTypes - 1 
-		
-		For k = 0 To MaxObjectPerType - 1
-			
-			FreeEntity objects(n, k)
-			
-		Next
-		
-	Next
-	
-	For n = 0 To MaxObjectTypes - 1
-		
-		objectsPlaced(n) = 0
-		
-	Next 
-	
-	; Clean objects listbox.
-	GUI_Message(lst3DObjects, "clear")
-	
-	; Reload objects and position them away.
-	LoadObjects()
-		
-End Function
-
 ; Reset a single object (position, scale and orientation).
 Function ResetObject(n, k)
 	
@@ -1746,6 +1719,49 @@ Function ResetObject(n, k)
 	RotateEntity objects(n, k), 0, 0, 0
 	
 End Function 
+
+; Reset objects state.
+Function ResetObjects()
+	
+;	For n = 0 To MaxObjectTypes - 1 
+;		
+;		For k = 0 To MaxObjectPerType - 1
+;			
+;			FreeEntity objects(n, k)
+;			
+;		Next
+;		
+;	Next
+;	
+;	For n = 0 To MaxObjectTypes - 1
+;		
+;		objectsPlaced(n) = 0
+;		
+;	Next 
+;	
+;	; Clean objects listbox.
+;	GUI_Message(lst3DObjects, "clear")
+;	
+;	; Reload objects and position them away.
+;	LoadObjects()
+	
+	For n = 0 To MaxObjectTypes - 1 
+		
+		For k = 0 To MaxObjectPerType - 1
+			
+			ResetObject(n, k)
+			
+		Next
+		
+	Next
+	
+	For n = 0 To MaxObjectTypes - 1
+		
+		objectsPlaced(n) = 0
+		
+	Next 
+		
+End Function
 
 ; -----------------------------------------------------------------------------------
 
@@ -2189,5 +2205,5 @@ End Function
 ;~IDEal Editor Parameters:
 ;~F#15B#17D#1C3#1D4#1E6#200#217#224#235#23C#244#251#25E#29F#2AF#2C4#2EA#2FA#311#337
 ;~F#376#39E#3B3#3C4#3DA#3E3#411#422#431#4F7#50E#53B#546#551#55A#584#5B7#5CD#5E9#5F0
-;~F#5FB#611#626#650#66A#683#68A#6B0#6DA#6E0#70C#716#770
+;~F#5FB#611#626#650#66A#683#68A#6B0#6BB#6EA#6F0#71C#726#780#78A
 ;~C#Blitz3D
