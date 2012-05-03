@@ -437,6 +437,12 @@ Function TrackEditorMode()
 	
 	;EndIf 
 	
+	If (KeyDown(46) = True)
+		
+		ResetCameraPosition()
+		
+	EndIf 
+	
 	; Update.
 	TrackEditorUpdate()
 	
@@ -450,6 +456,12 @@ Function SceneEditorMode()
 	PositionObject()
 	
 	UpdateObjects()
+	
+	If (KeyDown(46) = True)
+		
+		ResetCameraPosition()
+		
+	EndIf 
 	
 End Function
 
@@ -557,16 +569,24 @@ Function InitTerrain()
 	
 End Function
 
+; Reset camera position.
+Function ResetCameraPosition()
+	
+	PositionEntity camera, 0, 500, 0
+	PointEntity camera, plane
+	
+End Function
+
 ; Create a camera.
 Function InitCamera()
 	
 	DebugLog("Init camera...")
 	
 	camera = CreateCamera()
-	PositionEntity camera, 0, 500, 0
-	PointEntity camera, plane
 	
-	DebugLog("Done,")
+	ResetCameraPosition()
+	
+	DebugLog("Done.")
 	
 End Function 
 
@@ -2150,7 +2170,7 @@ End Function
 
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
-;~F#15B#17D#1BD#1C8#1DA#1F4#20B#218#229#230#23D#24A#28B#29B#2B0#2D6#2E6#2FD#323#362
-;~F#38A#39F#3B0#3C6#3CF#3FD#40E#41D#4E1#4F8#525#530#53B#544#570#5A6#5BC#5D8#5DF#5EA
-;~F#600#615#63F#659#672#679#69F#6B4#6C3#6C9#6F5#6FF#759#763
+;~F#15B#17D#1C3#1D4#1E6#200#217#224#235#23C#244#251#25E#29F#2AF#2C4#2EA#2FA#311#337
+;~F#376#39E#3B3#3C4#3DA#3E3#411#422#431#4F5#50C#539#544#54F#558#584#5BA#5D0#5EC#5F3
+;~F#5FE#614#629#653#66D#686#68D#6B3#6C8#6D7#6DD#709#713#76D#777
 ;~C#Blitz3D
