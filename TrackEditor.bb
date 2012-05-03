@@ -1997,6 +1997,8 @@ Function UpdateWindow()
 			
 			; Switch to scene editor.
 			
+			SaveMarkersData()
+			
 			; Save the track and convert it to a 3DS mesh.
 			If (trackMesh = 0)
 				
@@ -2031,6 +2033,12 @@ Function UpdateWindow()
 			
 			; Reset object (put them away).
 			ResetObjects()
+			
+			; Destroy track's mesh.
+			DestroyTrack()
+			
+			; Load markers data.
+			LoadMarkersData()
 			
 			; Set editor's state.
 			editorState = 0
@@ -2173,6 +2181,6 @@ End Function
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
 ;~F#15B#17D#1C3#1D4#1E6#200#217#224#235#23C#244#251#25E#29F#2AF#2C4#2EA#2FA#311#337
-;~F#376#39E#3B3#3C4#3DA#3E3#411#422#4F7#50E#53B#546#551#55A#586#5BC#5D2#5EE#5F5#600
-;~F#616#62B#655#66F#688#68F#6B5#6CA#6D9#6DF#70B#715#76F#779
+;~F#376#39E#3B3#3C4#3DA#3E3#411#422#431#4F7#50E#53B#546#551#55A#586#5BC#5D2#5EE#5F5
+;~F#600#616#62B#655#66F#688#68F#6B5#6CA#6D9#6DF#70B#715#76F
 ;~C#Blitz3D
