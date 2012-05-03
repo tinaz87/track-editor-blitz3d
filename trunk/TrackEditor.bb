@@ -149,8 +149,8 @@ Dim autoGenPointsCoordZ#(AutoGenPointsNumber)
 Dim autoGenPointsSX(AutoGenPointsNumber)
 Dim autoGenPointsDX(AutoGenPointsNumber)
 
-Dim autoGenPointsSXCoord#(AutoGenPointsNumber, 2)
-Dim autoGenPointsDXCoord#(AutoGenPointsNumber, 2)
+Dim autoGenPointsSXCoord#(AutoGenPointsNumber, 3)
+Dim autoGenPointsDXCoord#(AutoGenPointsNumber, 3)
 
 ; Angles.
 Dim angles#(AutoGenPointsNumber)
@@ -456,15 +456,25 @@ End Function
 ; Load resources.
 Function LoadResources()
 	
+	DebugLog("Loading textures set...")
+	
 	; Textures set.
 	tex = LoadTexture(TexturesPath$ + "base_0.png")
 	
+	DebugLog("DONE!")
+	
+	DebugLog("Loading 3D objects...")
+	
 	LoadObjects()
+	
+	DebugLog("Done.")
 	
 End Function 
 
 ; Create a terrain using a specified heightmap.
 Function CreateTerrain()
+	
+	DebugLog("Creating a new terrain...")
 	
 	; Create the terrain.
 	terrain = LoadTerrain(heightmapsPaths$(selectedHeightmap))
@@ -483,10 +493,14 @@ Function CreateTerrain()
 	
 	EntityPickMode terrain, 2
 	
+	DebugLog("Done.")
+	
 End Function
 
 ; Destroy the terrain.
 Function DestroyTerrain()
+	
+	DebugLog("Destroying current terrain...")
 	
 	If (terrain > 0)
 		
@@ -502,19 +516,27 @@ Function DestroyTerrain()
 ;		
 ;	EndIf 
 	
+	DebugLog("Done.")
+	
 End Function
 
 ; Destroy the current terrain and create a new one.
 Function LoadNewTerrain()
 	
+	;DebugLog("Loading terrain...")
+	
 	DestroyTerrain()
 	
 	CreateTerrain()
+	
+	;DebugLog("Done.")
 	
 End Function 
 	
 ; Create the plane.
 Function InitGround()
+	
+	DebugLog("Init ground...")
 	
 	;plane = CreateCube()
 	;ScaleEntity plane, 1000, 1, 1000
@@ -523,6 +545,8 @@ Function InitGround()
 	plane = CreatePlane()
 	PositionEntity plane, 0, -1, 0
 	EntityPickMode plane, 2
+	
+	DebugLog("Done.")
 	
 End Function 
 
@@ -536,23 +560,33 @@ End Function
 ; Create a camera.
 Function InitCamera()
 	
+	DebugLog("Init camera...")
+	
 	camera = CreateCamera()
 	PositionEntity camera, 0, 500, 0
 	PointEntity camera, plane
-
+	
+	DebugLog("Done,")
+	
 End Function 
 
 ; Create and init the light.
 Function InitLight()
 	
+	DebugLog("Init lights...")
+	
 	light = CreateLight()
 	LightColor light, 100, 100, 100
 	TurnEntity light, 90, 0, 0
+	
+	DebugLog("Done.")
 	
 End Function
 
 ; Create a skydome.
 Function InitSkybox()
+	
+	DebugLog("Init skydbox...")
 	
 	;	skydome = CreateSphere() 
 	;	ScaleEntity skydome, 2000, 2000, 2000 
@@ -610,10 +644,14 @@ Function InitSkybox()
 	EntityFX skybox, 1
 	EntityOrder skybox, 10
 	
+	DebugLog("Done.")
+	
 End Function
 
 ; Reset markers position.
 Function ResetMarkersPosition()
+	
+	DebugLog("Resetting markers position...")
 	
 	For n = 0 To MarkersNumber - 1
 		
@@ -622,10 +660,14 @@ Function ResetMarkersPosition()
 		
 	Next
 	
+	DebugLog("Done.")
+	
 End Function 
 
 ; Init markers' meshes.
 Function InitMarkers()
+	
+	DebugLog("Init markers...")
 	
 	For n = 0 To MarkersNumber - 1
 		
@@ -637,12 +679,16 @@ Function InitMarkers()
 		
 	Next
 	
+	DebugLog("Done.")
+	
 	ResetMarkersPosition()
 	
 End Function
 
 ; Init auto-generated points' meshes.
 Function InitAutoGenPoints()
+	
+	DebugLog("Init auto-generated points...")
 	
 	; Main points.
 	For n = 0 To AutoGenPointsNumber - 1
@@ -673,10 +719,14 @@ Function InitAutoGenPoints()
 		
 	Next
 	
+	DebugLog("Done.")
+	
 End Function 
 
 ; Destroy markers.
 Function DestroyMarkers()
+	
+	DebugLog("Destroy markers...")
 	
 	For n = 0 To MarkersNumber - 1
 		
@@ -685,10 +735,14 @@ Function DestroyMarkers()
 		
 	Next
 	
+	DebugLog("Done.")
+	
 End Function
 
 ; Destroy auto-gen. points.
 Function DestroyAutoGenPoints()
+	
+	DebugLog("Destroy auto-generated points...")
 	
 	For n = 0 To AutoGenPointsNumber - 1
 		
@@ -703,6 +757,8 @@ Function DestroyAutoGenPoints()
 		autoGenPointsDX(n) = 0
 		
 	Next
+	
+	DebugLog("Done.")
 	
 End Function 
 
@@ -837,6 +893,8 @@ Function AddMarker()
 			
 			markersPlaced(currentMarkerIndex) = True
 			
+			DebugLog("New marker (" + currentMarkerIndex + ") added in " + px# + " " + py# + " " + pz# + ".")
+			
 			updateNeeded = True
 			
 		EndIf
@@ -847,6 +905,8 @@ End Function
 
 ; Reset markers.
 Function ResetMarkersData()
+	
+	DebugLog("Resetting markers data...")
 	
 	numMarkersPlaced 	= 0
 	
@@ -859,6 +919,8 @@ Function ResetMarkersData()
 		markersCoordZ#(n) = 0
 		
 	Next
+	
+	DebugLog("Done.")
 	
 End Function
 	
@@ -882,6 +944,8 @@ End Function
 ; Reset the position of the points.
 Function ResetPoints()
 	
+	DebugLog("Resetting points...")
+	
 	; Main points.
 	For n = 0 To AutoGenPointsNumber - 1
 		
@@ -895,12 +959,23 @@ Function ResetPoints()
 		
 	Next
 	
+	DebugLog("Done.")
+	
 End Function
 
 ; Create track's mesh.
 Function CreateTrack()
 	
 	DestroyTrack()
+	
+	CreateTrackMesh()
+	
+End Function 
+
+; Create track's mesh.
+Function CreateTrackMesh()
+	
+	DebugLog("Creating track's mesh...")
 	
 	; Create a new mesh.
 	trackMesh = CreateMesh()
@@ -915,19 +990,19 @@ Function CreateTrack()
 		
 		If (n = numAutoGenPoints - 1)
 			
-			v0 = AddVertex(surface, autoGenPointsSXCoord#(n, 0), 2, autoGenPointsSXCoord#(n, 1), 0, 0)
-			v1 = AddVertex(surface, autoGenPointsSXCoord#(0, 0), 2, autoGenPointsSXCoord#(1, 1), .25, 0)
+			v0 = AddVertex(surface, autoGenPointsSXCoord#(n, 0), autoGenPointsSXCoord#(n, 1) + 2, autoGenPointsSXCoord#(n, 2), 0, 0)
+			v1 = AddVertex(surface, autoGenPointsSXCoord#(0, 0), autoGenPointsSXCoord#(0, 1) + 2, autoGenPointsSXCoord#(0, 2), .25, 0)
 			
-			v2 = AddVertex(surface, autoGenPointsDXCoord#(n, 0), 2, autoGenPointsDXCoord#(n, 1), .25, .25)
-			v3 = AddVertex(surface, autoGenPointsDXCoord#(0, 0), 2, autoGenPointsDXCoord#(0, 1), 0, .25)
+			v2 = AddVertex(surface, autoGenPointsDXCoord#(n, 0), autoGenPointsDXCoord#(n, 1) + 2, autoGenPointsDXCoord#(n, 2), .25, .25)
+			v3 = AddVertex(surface, autoGenPointsDXCoord#(0, 0), autoGenPointsDXCoord#(0, 1) + 2, autoGenPointsDXCoord#(0, 2), 0, .25)
 			
 		Else 
 			
-			v0 = AddVertex(surface, autoGenPointsSXCoord#(n, 0), 2, autoGenPointsSXCoord#(n, 1), 0, 0)
-			v1 = AddVertex(surface, autoGenPointsSXCoord#(n + 1, 0), 2, autoGenPointsSXCoord#(n + 1, 1), .25, 0)
+			v0 = AddVertex(surface, autoGenPointsSXCoord#(n, 0), autoGenPointsSXCoord#(n, 1) + 2, autoGenPointsSXCoord#(n, 2), 0, 0)
+			v1 = AddVertex(surface, autoGenPointsSXCoord#(n + 1, 0), autoGenPointsSXCoord#(n + 1, 1) + 2, autoGenPointsSXCoord#(n + 1, 2), .25, 0)
 			
-			v2 = AddVertex(surface, autoGenPointsDXCoord#(n, 0), 2, autoGenPointsDXCoord#(n, 1), .25, .25)
-			v3 = AddVertex(surface, autoGenPointsDXCoord#(n + 1, 0), 2, autoGenPointsDXCoord#(n + 1, 1), 0, .25)
+			v2 = AddVertex(surface, autoGenPointsDXCoord#(n, 0), autoGenPointsDXCoord#(n, 1) + 2, autoGenPointsDXCoord#(n, 2), .25, .25)
+			v3 = AddVertex(surface, autoGenPointsDXCoord#(n + 1, 0), autoGenPointsDXCoord#(n + 1, 1) + 2, autoGenPointsDXCoord#(n + 1, 2), 0, .25)
 			
 		EndIf 
 		
@@ -939,10 +1014,14 @@ Function CreateTrack()
 	EntityColor trackMesh, 80, 80, 80
 	EntityTexture trackMesh, tex
 	
-End Function 
+	DebugLog("Done.")
+	
+End Function
 
 ; Destroy track's mesh.
 Function DestroyTrack()
+	
+	DebugLog("Destroying track's mesh...")
 	
 	; Clean an existing mesh.
 	If (trackMesh > 0)
@@ -952,16 +1031,22 @@ Function DestroyTrack()
 		
 	End If 
 	
+	DebugLog("Done.")
+	
 End Function 
 
 ; Reset terrain.
 Function ResetTerrain()
+	
+	DebugLog("Resetting terrain properties...")
 	
 	selectedHeightmap = DefaultHeightmapIndex
 	selectedTile = DefaultTileIndex
 	
 	terrainHScale = DefaultTerrainHScale
 	terrainVScale = DefaultTerrainVScale
+	
+	DebugLog("Done.")
 	
 End Function
 
@@ -970,12 +1055,16 @@ Function TrackEditorUpdate()
 	
 	If (updateNeeded = True)
 		
+		DebugLog("Updating track...")
+		
 		;--------------------------------------------------------------------------------------------
 		
 		; Reset values.
 		ResetValues()
 		
 		;--------------------------------------------------------------------------------------------
+		
+		DebugLog("Setting markers position...")
 		
 		For n = 0 To numMarkersPlaced - 1
 			
@@ -990,6 +1079,8 @@ Function TrackEditorUpdate()
 		Next
 		
 		;--------------------------------------------------------------------------------------------
+		
+		DebugLog("Generating spline's main points...")
 		
 		While (iaPoint <= numMarkersPlaced)
 			
@@ -1037,6 +1128,10 @@ Function TrackEditorUpdate()
 				autoGenPointsCoordX#(numAutoGenPoints) = autoCoordX#
 				autoGenPointsCoordZ#(numAutoGenPoints) = autoCoordZ#
 				
+				; The y-coordinate is calculalted sampling the terrain.
+				y# = TerrainY(terrain, autoCoordX#, 0, autoCoordZ#)
+				autoGenPointsCoordY#(numAutoGenPoints) = y#
+				
 				; PositionEntity 	autoGenPoints(numAutoGenPoints), 
 				;					autoGenPointsCoordX#(numAutoGenPoints), 
 				;					0, 
@@ -1056,6 +1151,8 @@ Function TrackEditorUpdate()
 		
 		;--------------------------------------------------------------------------------------------
 		
+		DebugLog("Generating lateral points...")
+		
 		; Calc. sx and dx points.
 		For n = 0 To numAutoGenPoints - 1
 			
@@ -1064,19 +1161,28 @@ Function TrackEditorUpdate()
 			
 			angles#(n) = 270 - ATan2#(xx#, zz#)
 			
+			; Set SX point.
+			
 			xx# = autoGenPointsCoordX#(n) + Cos#(angles#(n) + 90) * 10
 			zz# = autoGenPointsCoordZ#(n) + Sin#(angles#(n) + 90) * 10
 			
-			; Set SX point.
 			autoGenPointsSXCoord#(n, 0) = xx#
-			autoGenPointsSXCoord#(n, 1) = zz#
+			autoGenPointsSXCoord#(n, 2) = zz#
+			
+			; The y-coordinate is calculalted sampling the terrain.
+			yy# = TerrainY(terrain, xx#, 0, zz#)
+			autoGenPointsSXCoord#(n, 1) = yy#
 			
 			xx# = autoGenPointsCoordX#(n) + Cos#(angles#(n) - 90) * 10
 			zz# = autoGenPointsCoordZ#(n) + Sin#(angles#(n) - 90) * 10		
 			
 			; Set DX point.
 			autoGenPointsDXCoord#(n, 0) = xx#
-			autoGenPointsDXCoord#(n, 1) = zz#
+			autoGenPointsDXCoord#(n, 2) = zz#
+			
+			; The y-coordinate is calculalted sampling the terrain.
+			yy# = TerrainY(terrain, xx#, 0, zz#)
+			autoGenPointsSXCoord#(n, 1) = yy#
 			
 		Next
 		
@@ -1084,6 +1190,8 @@ Function TrackEditorUpdate()
 		
 		; Reset the position of the points.
 		ResetPoints()
+		
+		DebugLog("Setting points position...")
 		
 		For n = 0 To numAutoGenPoints - 1
 			
@@ -1111,16 +1219,14 @@ Function TrackEditorUpdate()
 				
 				; Position SX and DX points.
 				sx# = autoGenPointsSXCoord#(n, 0)
-				sz# = autoGenPointsDXCoord#(n, 1)
-				
-				sy# = TerrainY(terrain, sx#, 0, sz#)
+				sy# = autoGenPointsSXCoord#(n, 1)
+				sz# = autoGenPointsSXCoord#(n, 2)
 				
 				PositionEntity autoGenPointsSX(n), sx#, sy#, sz#
 				
-				dx# = autoGenPointsSXCoord#(n, 0)
-				dz# = autoGenPointsDXCoord#(n, 1)
-				
-				dy# = TerrainY(terrain, dx#, 0, dz#)
+				dx# = autoGenPointsDXCoord#(n, 0)
+				dy# = autoGenPointsDXCoord#(n, 1)
+				dz# = autoGenPointsDXCoord#(n, 2)
 				
 				PositionEntity autoGenPointsDX(n), dx#, dy#, dz#
 				
@@ -1132,6 +1238,8 @@ Function TrackEditorUpdate()
 		
 		updateNeeded = False 
 		
+		DebugLog("Track's update complete.")
+		
 	EndIf 
 	
 End Function 
@@ -1140,6 +1248,8 @@ End Function
 
 ; Save the current track to file.
 Function SaveMarkersData()
+	
+	DebugLog("Saving markers data...")
 	
 	outFile = WriteFile(SavedDataPath$ + TrackData$)
 	
@@ -1155,18 +1265,20 @@ Function SaveMarkersData()
 	
 	CloseFile outFile
 	
-	DebugLog("Track saved!")
+	DebugLog("Done!")
 	
 End Function 
 
 ; Load a track from file.
 Function LoadMarkersData()
 	
+	DebugLog("Loading markers data...")
+	
+	loadedPoints = 0
+	
 	If (FileType(SavedDataPath$ + TrackData$))
 		
 		inFile = ReadFile(SavedDataPath$ + TrackData$)
-		
-		loadedPoints = 0
 		
 		For n = 0 To MarkersNumber - 1
 			
@@ -1184,9 +1296,6 @@ Function LoadMarkersData()
 			
 		Next
 		
-		; Write how many points you've loaded successfully.
-		DebugLog("LOAD: " + loadedPoints + " points loaded.")
-		
 		numMarkersPlaced = loadedPoints
 		
 		currentMarkerIndex = loadedPoints - 1
@@ -1201,12 +1310,18 @@ Function LoadMarkersData()
 		
 	EndIf
 	
+	DebugLog("Done (" + loadedPoints + " points loaded).")
+	
 End Function
 
 ; Save the track as a 3DS object.
 Function Save3DS()
 	
+	DebugLog("Saving 3DS mesh...")
+	
 	SaveMesh3DS(trackMesh, SavedDataPath$ + Track3DS$) 
+	
+	DebugLog("Done.")
 	
 End Function 
 
@@ -2035,7 +2150,7 @@ End Function
 
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
-;~F#15B#17D#1BD#1C8#1D2#1E8#1FB#204#211#218#221#22A#267#273#284#2A6#2B2#2C5#2EB#32A
-;~F#350#361#372#384#3B0#3BD#3C8#475#48A#4B6#4BD#4C8#4D1#4FD#533#549#565#56C#577#58D
-;~F#5A2#5CC#5E6#5FF#606#62C#641#650#656#682#68C#6E6#6F0
+;~F#15B#17D#1BD#1C8#1DA#1F4#20B#218#229#230#23D#24A#28B#29B#2B0#2D6#2E6#2FD#323#362
+;~F#38A#39F#3B0#3C6#3CF#3FD#40E#41D#4E1#4F8#525#530#53B#544#570#5A6#5BC#5D8#5DF#5EA
+;~F#600#615#63F#659#672#679#69F#6B4#6C3#6C9#6F5#6FF#759#763
 ;~C#Blitz3D
