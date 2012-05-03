@@ -2239,8 +2239,6 @@ Function UpdateWindow()
 				
 			scale# = (GUI_Message(sldObjectScale, "getvalue"))
 			
-			DebugLog(scale#)
-			
 			GUI_Message(sldObjectXScale, "setvalue", scale#)
 			GUI_Message(sldObjectYScale, "setvalue", scale#)
 			GUI_Message(sldObjectZScale, "setvalue", scale#)
