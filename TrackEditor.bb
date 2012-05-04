@@ -31,7 +31,7 @@ Const GUISkin$ 					= "MacOS"
 Const MarkersNumber				= 50
 
 ; Max number of auto-generated points.
-Const AutoGenPointsNumber 		= 500
+Const AutoGenPointsNumber 		= 1500
 
 ; Mouse turn speed.
 Const TurnSpeed#				= 0.8
@@ -85,6 +85,7 @@ Const FarAwayZ#					= 0
 ; Track view mode parameters.
 Const CameraInterpolationStep#	= 25.0
 Const CameraAngleDifference#	= 5.0
+Const CameraCurvature#			= 2
 Const CameraDistance#			= 10.0
 Const CameraMarkersNumber		= 50
 Const AutoGenCameraPointsNumber = 500
@@ -1950,11 +1951,11 @@ Function LoadCameraPoints()
 	
 	loadedPoints = 0
 	
-	If (FileType(SavedDataPath$ + TrackData$))
+	If (FileType(SavedDataPath$ + CameraMarkers$))
 		
-		inFile = ReadFile(SavedDataPath$ + TrackData$)
+		inFile = ReadFile(SavedDataPath$ + CameraMarkers$)
 		
-		For n = 0 To MarkersNumber - 1
+		For n = 0 To CameraMarkersNumber - 1
 			
 			cameraPointsPlaced(n) = ReadByte(inFile)
 			
@@ -2017,26 +2018,26 @@ Function InitTrackView()
 		angle# = 270 - ATan2#(xx#, zz#)
 		difference# = AngleDifference#(cameraAngle#, angle#)
 		
-		If (difference# < -IAAngleDifference#)
-			cameraAngle# = cameraAngle# - Curvature#
+		If (difference# < -CameraAngleDifference#)
+			cameraAngle# = cameraAngle# - CameraCurvature#
 		EndIf 
 		
-		If (difference# > IAAngleDifference#)
-			cameraAngle# = cameraAngle# + Curvature#
+		If (difference# > CameraAngleDifference#)
+			cameraAngle# = cameraAngle# + CameraCurvature#
 		EndIf 
 		
-		If (Abs(difference#) < IAAngleDifference#)
+		If (Abs(difference#) < CameraAngleDifference#)
 			cameraAngle# = angle#
 		EndIf 
 		
-		If (d# > IADistance#)
+		If (d# > CameraDistance#)
 			
 			cameraCoordX# = cameraCoordX# + Cos#(cameraAngle#)
 			cameraCoordZ# = cameraCoordZ# + Sin#(cameraAngle#)
 			
 			cameraCiclesCounter = cameraCiclesCounter + 1
 			
-			If (cameraPoint > 1 And cameraCiclesCounter > 25)
+			If (cameraPoint > 1 And cameraCiclesCounter > CameraInterpolationStep#)
 				
 				cameraCiclesCounter = 0
 				
@@ -2060,9 +2061,9 @@ Function InitTrackView()
 				
 				numAutoGenCameraPoints = numAutoGenCameraPoints + 1 
 				
-				If (numAutoGenCameraPoints > AutoGenPointsNumber - 1)
+				If (numAutoGenCameraPoints > AutoGenCameraPointsNumber - 1)
 					
-					numAutoGenCameraPoints = AutoGenPointsNumber - 1
+					numAutoGenCameraPoints = AutoGenCameraPointsNumber - 1
 					
 				End If 
 				
@@ -2081,56 +2082,56 @@ Function InitTrackView()
 	PositionEntity camera, autoGenCameraPointsCoordX#(0), autoGenCameraPointsCoordY#(0) + 10, autoGenCameraPointsCoordZ#(0)
 	PointEntity camera, autoGenCameraPoints(1)
 	
+	DebugLog("Camera target: " + 1 + "/" + (numAutoGenCameraPoints - 1) + ".")
+	
 	PositionEntity skybox, EntityX(camera), EntityY(camera), EntityZ(camera)
 	
 End Function
 
 ; Track view mode cicle.
 Function ViewTrack()
-	
-	If (cameraPointTarget <= numAutoGenCameraPoints + 1)
 		
-		DebugLog("Camera target: " + cameraPointTarget + ".")
+	; DebugLog("Camera target: " + cameraPointTarget + ".")
 		
-		; Movement's direction.
-		xx# = autoGenCameraPointsCoordX#(cameraPointTarget) - autoGenCameraPointsCoordX#(prevoiousCameraPoint)
-		yy# = autoGenCameraPointsCoordY#(cameraPointTarget) - autoGenCameraPointsCoordY#(prevoiousCameraPoint)
-		zz# = autoGenCameraPointsCoordZ#(cameraPointTarget) - autoGenCameraPointsCoordZ#(prevoiousCameraPoint)
+	; Movement's direction.
+	xx# = autoGenCameraPointsCoordX#(cameraPointTarget) - autoGenCameraPointsCoordX#(prevoiousCameraPoint)
+	yy# = autoGenCameraPointsCoordY#(cameraPointTarget) - autoGenCameraPointsCoordY#(prevoiousCameraPoint)
+	zz# = autoGenCameraPointsCoordZ#(cameraPointTarget) - autoGenCameraPointsCoordZ#(prevoiousCameraPoint)
 		
-		norm# = Sqr#(xx# * xx# + yy# * yy# + zz# * zz#) 
+	norm# = Sqr#(xx# * xx# + yy# * yy# + zz# * zz#) 
 		
-		; Movement vector.
-		xx# = (xx# / norm#) * ViewSpeed#
-		yy# = (yy# / norm#) * ViewSpeed#
-		zz# = (zz# / norm#) * ViewSpeed#
+	; Movement vector.
+	xx# = (xx# / norm#) * ViewSpeed#
+	yy# = (yy# / norm#) * ViewSpeed#
+	zz# = (zz# / norm#) * ViewSpeed#
 		
-		; Set camera position (and skybox).
-		cx# = EntityX#(camera)
-		cy# = EntityY#(camera)
-		cz# = EntityZ#(camera)
+	; Set camera position (And skybox).
+	cx# = EntityX#(camera)
+	cy# = EntityY#(camera)
+	cz# = EntityZ#(camera)
 		
-		PositionEntity camera, cx# + xx#, cy#, cz# + zz#
-		PositionEntity skybox, EntityX(camera), EntityY(camera), EntityZ(camera)
+	PositionEntity camera, cx# + xx#, cy# + yy#, cz# + zz#
+	PositionEntity skybox, EntityX(camera), EntityY(camera), EntityZ(camera)
 		
-		; Get new camera position.
-		cx# = EntityX#(camera)
-		cy# = EntityY#(camera)
-		cz# = EntityZ#(camera)
+	; Get New camera position.
+	cx# = EntityX#(camera)
+	cy# = EntityY#(camera)
+	cz# = EntityZ#(camera)
 		
-		; Did you have reached the target?
-		dx# = autoGenCameraPointsCoordX#(cameraPointTarget) - cx#
-		dy# = autoGenCameraPointsCoordY#(cameraPointTarget) - cy#
-		dz# = autoGenCameraPointsCoordZ#(cameraPointTarget) - cz#
+	; Did you have reached the target?
+	dx# = autoGenCameraPointsCoordX#(cameraPointTarget) - cx#
+	dy# = autoGenCameraPointsCoordY#(cameraPointTarget) - cy#
+	dz# = autoGenCameraPointsCoordZ#(cameraPointTarget) - cz#
 		
-		d# = Sqr#(dx# * dx# + dz# * dz#)
+	d# = Sqr#(dx# * dx# + dz# * dz#)
 		
-		If (d# < ViewSpeed# * 2)
+	If (d# < ViewSpeed# * 2)
 			
-			prevoiousCameraPoint = cameraPointTarget
-			cameraPointTarget = cameraPointTarget + 1
+		prevoiousCameraPoint = (cameraPointTarget) Mod (numAutoGenCameraPoints)
+		cameraPointTarget = (cameraPointTarget + 1) Mod (numAutoGenCameraPoints)
 			
-		EndIf 
-		
+		DebugLog("Camera target: " + cameraPointTarget + "/" + (numAutoGenCameraPoints - 1) + ".")
+			
 	EndIf 
 	
 End Function 
@@ -2651,8 +2652,8 @@ End Function
 
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
-;~F#19C#1BE#204#23D#24F#269#280#28D#29E#2A5#2AD#2BA#2C7#308#318#32D#353#363#37A#3A4
-;~F#3E3#40B#420#433#449#452#480#491#4A0#569#580#5AD#5B8#5C3#5CC#5F6#629#63F#659#663
-;~F#66A#675#68B#6A0#6CD#6E7#700#707#753#762#78D#79A#7BF#828#85A#88C#892#8BE#8C8#924
-;~F#92E
+;~F#19D#1BF#205#23E#250#26A#281#28E#29F#2A6#2AE#2BB#2C8#309#319#32E#354#364#37B#3A5
+;~F#3E4#40C#421#434#44A#453#481#492#4A1#56A#581#5AE#5B9#5C4#5CD#5F7#62A#640#65A#664
+;~F#66B#676#68C#6A1#6CE#6E8#701#708#754#763#78E#79B#7C0#82B#85B#88D#893#8BF#8C9#925
+;~F#92F
 ;~C#Blitz3D
