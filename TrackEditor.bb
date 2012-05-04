@@ -25,62 +25,69 @@ HidePointer()
 ; --- CONST VALUES ------------------------------------------------------------------
 
 ; GUI skin.
-Const GUISkin$ 				= "MacOS"
+Const GUISkin$ 					= "MacOS"
 
 ; Max number of points allowed.
-Const MarkersNumber			= 50
+Const MarkersNumber				= 50
 
 ; Max number of auto-generated points.
-Const AutoGenPointsNumber 	= 500
+Const AutoGenPointsNumber 		= 500
 
 ; Mouse turn speed.
-Const TurnSpeed#			= 0.8
+Const TurnSpeed#				= 0.8
 
 ; Curvature.
-Const Curvature#			= 2
+Const Curvature#				= 2
 
 ; Spline's step.
-Const InterpolationStep#	= 5.0
+Const InterpolationStep#		= 5.0
 
 ; IA Values.
-Const IAAngleDifference#	= 5.0
-Const IADistance#			= 10.0
+Const IAAngleDifference#		= 5.0
+Const IADistance#				= 10.0
 
 ; Marker's selection ray.
-Const MarkerSelectionRay#	= 10.0
+Const MarkerSelectionRay#		= 10.0
 
 ; Heightmaps size.
-Const HeightmapsSize		= 512
+Const HeightmapsSize			= 512
 
 ; Default terrain's horizontal scale.
-Const DefaultTerrainHScale	= 1
+Const DefaultTerrainHScale		= 1
 
 ; Default terrain's vertical scale.
-Const DefaultTerrainVScale	= 50
+Const DefaultTerrainVScale		= 50
 
 ; Default terrain's tile scale.
-Const DefaultTileScale		= 32
+Const DefaultTileScale			= 32
 
 ; Max number of heightmaps available.
-Const MaxHeightmapsNumber	= 20
+Const MaxHeightmapsNumber		= 20
 
 ; Max number of tiles available.
-Const MaxTilesNumber 		= 20
+Const MaxTilesNumber 			= 20
 
 ; Default heighmtap index.
-Const DefaultHeightmapIndex = 5
+Const DefaultHeightmapIndex 	= 5
 
 ; Default tile index.
-Const DefaultTileIndex 		= 6
+Const DefaultTileIndex 			= 6
 
 ; Max loadable scene objects.
-Const MaxObjectTypes		= 50
-Const MaxObjectPerType 		= 20 
+Const MaxObjectTypes			= 50
+Const MaxObjectPerType 			= 20 
 
 ; Far away...
-Const FarAwayX#				= 0
-Const FarAwayY#				= -10000
-Const FarAwayZ#				= 0
+Const FarAwayX#					= 0
+Const FarAwayY#					= -10000
+Const FarAwayZ#					= 0
+
+; Track view mode parameters.
+Const CameraInterpolationStep#	= 25.0
+Const CameraAngleDifference#	= 5.0
+Const CameraDistance#			= 10.0
+Const CameraMarkersNumber		= 50
+Const AutoGenCameraPointsNumber = 500
 
 ; -----------------------------------------------------------------------------------
 
@@ -106,6 +113,8 @@ Const TrackData$		= "Track.txt"
 Const Track3DS$			= "Track.3ds"
 Const HeightmapData$	= "HeigthmapData.txt"
 Const ObjectsData$		= "ObjectsData.txt"
+
+Const CameraMarkers$	= "Track.txt"
 
 ; -----------------------------------------------------------------------------------
 
@@ -265,6 +274,50 @@ Global addObject 			= 0
 Global scale# 				= 1
 ; Do you have enabled the proportional scale mode?
 Global scaleIsChecked 		= 0
+
+; -----------------------------------------------------------------------------------
+
+
+; --- TRACK VIEW --------------------------------------------------------------------
+
+Global oldCameraCoordX#			= 0
+Global oldCameraCoordY#			= 0
+Global oldCameraCoordZ#			= 0
+
+Global oldCameraPitch#			= 0
+Global oldCameraYaw#			= 0
+Global oldCameraRoll#			= 0
+
+Global numCameraPointsPlaced 	= 0
+
+Dim cameraPointsPlaced(MarkersNumber)
+
+Dim cameraPointsCoordX#(MarkersNumber)
+Dim cameraPointsCoordY#(MarkersNumber)
+Dim cameraPointsCoordZ#(MarkersNumber)
+
+Dim autoGenCameraPoints(AutoGenPointsNumber)
+
+Dim autoGenCameraPointsCoordX#(AutoGenPointsNumber)
+Dim autoGenCameraPointsCoordY#(AutoGenPointsNumber)
+Dim autoGenCameraPointsCoordZ#(AutoGenPointsNumber)
+
+Global cameraPoint 				= 1
+Global numAutoGenCameraPoints 	= 0
+
+Global cameraCoordX# 			= 0
+Global cameraCoordZ# 			= 0
+
+Global cameraAngle# 			= 0
+
+Global cameraCiclesCounter 		= 0
+
+Global prevoiousCameraPoint 	= 0
+Global cameraPointTarget 		= 1
+
+Const ViewSpeed# 				= 0.5
+
+Global trackViewMode 			= 0 
 
 ; -----------------------------------------------------------------------------------
 
@@ -463,17 +516,57 @@ End Function
 ; ### EDIT THE SCENE ####################################################
 Function SceneEditorMode()
 	
-	MoveCamera()
-	
-	PositionObject()
-	
-	UpdateObjects()
-	
-	If (KeyDown(46) = True)
+	If (trackViewMode = 1)
 		
-		ResetCameraPosition()
+		; Track view mode.
+		ViewTrack()
+		
+	Else 
+		
+		PositionObject()
+		
+		UpdateObjects()
+		
+		If (KeyDown(46) = True)
+			
+			ResetCameraPosition()
+			
+		EndIf
 		
 	EndIf 
+	
+	; Enter in 'Track View Mode'.
+	If (KeyHit(47) = True)
+		
+		; Enable...
+		If (trackViewMode = 0)
+			
+			; Save camera's statuts.
+			SaveCameraState()
+			
+			; Load markers data from file.
+			LoadCameraPoints()
+			
+			; Init the path.
+			InitTrackView()
+			
+			; Go!
+			trackViewMode = 1
+			
+		Else
+			
+			; Uninit path.
+			QuitTrackView()
+			
+			; ...or disable it.
+			trackViewMode = 0
+			
+		EndIf
+		
+	EndIf 
+	
+	; Camera manager.
+	MoveCamera()
 	
 End Function
 
@@ -485,7 +578,7 @@ Function LoadResources()
 	; Textures set.
 	tex = LoadTexture(TexturesPath$ + "base_0.png")
 	
-	DebugLog("DONE!")
+	DebugLog("Done.")
 	
 	DebugLog("Loading 3D objects...")
 	
@@ -797,20 +890,24 @@ End Function
 ; Camera management.
 Function MoveCamera()
 	
-	xx = KeyDown(205) - KeyDown(203)
-	zz = KeyDown(200) - KeyDown(208)
-	
-	MoveEntity(camera, xx, 0, zz)
-	
-	x# = EntityX(camera) 
-	y# = EntityY(camera) 
-	z# = EntityZ(camera) 
-	
-	terrainLevel# = TerrainY(terrain, x#, y#, z#) + 5 
-	
-	If (y# < terrainLevel#)
-	
-		PositionEntity camera, x#, terrainLevel#, z#
+	If (trackViewMode = 0)
+		
+		xx = KeyDown(205) - KeyDown(203)
+		zz = KeyDown(200) - KeyDown(208)
+		
+		MoveEntity(camera, xx, 0, zz)
+		
+		x# = EntityX(camera) 
+		y# = EntityY(camera) 
+		z# = EntityZ(camera) 
+		
+		terrainLevel# = TerrainY(terrain, x#, y#, z#) + 5 
+		
+		If (y# < terrainLevel#)
+			
+			PositionEntity camera, x#, terrainLevel#, z#
+			
+		EndIf
 		
 	EndIf 
 		
@@ -970,6 +1067,8 @@ Function ResetValues()
 	zz# = markersCoordZ#(0) - markersCoordZ#(1)
 	
 	autoAngle# = 270 - ATan2#(xx#, zz#)
+	
+	ciclesCounter		= 0
 	
 End Function 
 
@@ -1302,7 +1401,7 @@ Function SaveMarkersData()
 	
 	CloseFile outFile
 	
-	DebugLog("Done!")
+	DebugLog("Done.")
 	
 End Function 
 
@@ -1493,7 +1592,7 @@ Function SaveTerrainData()
 	
 	CloseFile file
 	
-	DebugLog("DONE!")
+	DebugLog("Done.")
 	
 End Function
 
@@ -1519,7 +1618,7 @@ Function LoadTerrainData()
 	
 	EndIf
 	
-	DebugLog("DONE!")
+	DebugLog("Done.")
 	
 End Function
 
@@ -1829,6 +1928,257 @@ Function ResetObjects()
 		
 	Next 
 		
+End Function
+
+; Save current camera state.
+Function SaveCameraState()
+	
+	oldCameraCoordX# = EntityX#(camera)
+	oldCameraCoordY# = EntityY#(camera)
+	oldCameraCoordZ# = EntityZ#(camera)
+	
+	oldCameraPitch# = EntityPitch#(camera)
+	oldCameraYaw# = EntityYaw#(camera)
+	oldCameraRoll# = EntityRoll#(camera)
+	
+End Function
+
+; Load camera's markers.
+Function LoadCameraPoints()
+	
+	DebugLog("Loading camera points...")
+	
+	loadedPoints = 0
+	
+	If (FileType(SavedDataPath$ + TrackData$))
+		
+		inFile = ReadFile(SavedDataPath$ + TrackData$)
+		
+		For n = 0 To MarkersNumber - 1
+			
+			cameraPointsPlaced(n) = ReadByte(inFile)
+			
+			cameraPointsCoordX#(n) = ReadFloat(inFile)
+			cameraPointsCoordY#(n) = ReadFloat(inFile)
+			cameraPointsCoordZ#(n) = ReadFloat(inFile)
+			
+			If (cameraPointsPlaced(n) = True)
+				
+				loadedPoints = loadedPoints + 1
+				
+			End If 
+			
+		Next
+		
+		numCameraPointsPlaced = loadedPoints
+		
+		CloseFile inFile
+		
+	EndIf
+	
+	DebugLog("Done (" + loadedPoints + " points loaded).")
+	
+End Function
+
+; Init track view mode.
+Function InitTrackView()
+	
+	DebugLog("Init camera values...")
+	
+	cameraPoint 			= 1
+	
+	numAutoGenCameraPoints 	= 0
+	
+	cameraCoordX# = cameraPointsCoordX#(0)
+	cameraCoordZ# = cameraPointsCoordZ#(0)
+	
+	xx# = cameraPointsCoordX#(0) - cameraPointsCoordX#(1)
+	zz# = cameraPointsCoordZ#(0) - cameraPointsCoordZ#(1)
+	
+	cameraAngle# = 270 - ATan2#(xx#, zz#)
+	
+	cameraCiclesCounter = 0
+	
+	prevoiousCameraPoint = 0
+	cameraPointTarget = 1
+	
+	DebugLog("Calculating auto-generated points...")
+	
+	markerColor = 0
+	
+	While (cameraPoint <= numCameraPointsPlaced + 1)
+		
+		currentPoint = cameraPoint Mod numCameraPointsPlaced
+		
+		xx# = cameraCoordX# - cameraPointsCoordX#(currentPoint)
+		zz# = cameraCoordZ# - cameraPointsCoordZ#(currentPoint)
+		
+		d# = Sqr#(xx# * xx# + zz# * zz#)
+		angle# = 270 - ATan2#(xx#, zz#)
+		difference# = AngleDifference#(cameraAngle#, angle#)
+		
+		If (difference# < -IAAngleDifference#)
+			cameraAngle# = cameraAngle# - Curvature#
+		EndIf 
+		
+		If (difference# > IAAngleDifference#)
+			cameraAngle# = cameraAngle# + Curvature#
+		EndIf 
+		
+		If (Abs(difference#) < IAAngleDifference#)
+			cameraAngle# = angle#
+		EndIf 
+		
+		If (d# > IADistance#)
+			
+			cameraCoordX# = cameraCoordX# + Cos#(cameraAngle#)
+			cameraCoordZ# = cameraCoordZ# + Sin#(cameraAngle#)
+			
+			cameraCiclesCounter = cameraCiclesCounter + 1
+			
+			If (cameraPoint > 1 And cameraCiclesCounter > 25)
+				
+				cameraCiclesCounter = 0
+				
+				autoGenCameraPointsCoordX#(numAutoGenCameraPoints) = cameraCoordX#
+				autoGenCameraPointsCoordZ#(numAutoGenCameraPoints) = cameraCoordZ#
+				
+				; The y-coordinate is calculated sampling the terrain.
+				y# = TerrainY(terrain, cameraCoordX#, 0, cameraCoordZ#)
+				autoGenCameraPointsCoordY#(numAutoGenCameraPoints) = y#
+				
+				autoGenCameraPoints(numAutoGenCameraPoints) = CreateSphere(2)
+				ScaleEntity autoGenCameraPoints(numAutoGenCameraPoints), 5, 5, 5
+				
+				EntityColor autoGenCameraPoints(numAutoGenCameraPoints), markerColor, markerColor, markerColor
+				markerColor = markerColor + 1
+				If (markerColor > 255) Then markerColor = 255
+				
+				PositionEntity 	autoGenCameraPoints(numAutoGenCameraPoints), autoGenCameraPointsCoordX#(numAutoGenCameraPoints), autoGenCameraPointsCoordY#(numAutoGenCameraPoints) + 10, autoGenCameraPointsCoordZ#(numAutoGenCameraPoints)
+				
+				HideEntity autoGenCameraPoints(numAutoGenCameraPoints)
+				
+				numAutoGenCameraPoints = numAutoGenCameraPoints + 1 
+				
+				If (numAutoGenCameraPoints > AutoGenPointsNumber - 1)
+					
+					numAutoGenCameraPoints = AutoGenPointsNumber - 1
+					
+				End If 
+				
+			EndIf 
+			
+		Else
+			
+			cameraPoint = cameraPoint + 1
+			
+		End If 
+		
+	Wend
+	
+	DebugLog("Positioning camera...")
+	
+	PositionEntity camera, autoGenCameraPointsCoordX#(0), autoGenCameraPointsCoordY#(0) + 10, autoGenCameraPointsCoordZ#(0)
+	PointEntity camera, autoGenCameraPoints(1)
+	
+	PositionEntity skybox, EntityX(camera), EntityY(camera), EntityZ(camera)
+	
+End Function
+
+; Track view mode cicle.
+Function ViewTrack()
+	
+	If (cameraPointTarget <= numAutoGenCameraPoints + 1)
+		
+		DebugLog("Camera target: " + cameraPointTarget + ".")
+		
+		; Movement's direction.
+		xx# = autoGenCameraPointsCoordX#(cameraPointTarget) - autoGenCameraPointsCoordX#(prevoiousCameraPoint)
+		yy# = autoGenCameraPointsCoordY#(cameraPointTarget) - autoGenCameraPointsCoordY#(prevoiousCameraPoint)
+		zz# = autoGenCameraPointsCoordZ#(cameraPointTarget) - autoGenCameraPointsCoordZ#(prevoiousCameraPoint)
+		
+		norm# = Sqr#(xx# * xx# + yy# * yy# + zz# * zz#) 
+		
+		; Movement vector.
+		xx# = (xx# / norm#) * ViewSpeed#
+		yy# = (yy# / norm#) * ViewSpeed#
+		zz# = (zz# / norm#) * ViewSpeed#
+		
+		; Set camera position (and skybox).
+		cx# = EntityX#(camera)
+		cy# = EntityY#(camera)
+		cz# = EntityZ#(camera)
+		
+		PositionEntity camera, cx# + xx#, cy#, cz# + zz#
+		PositionEntity skybox, EntityX(camera), EntityY(camera), EntityZ(camera)
+		
+		; Get new camera position.
+		cx# = EntityX#(camera)
+		cy# = EntityY#(camera)
+		cz# = EntityZ#(camera)
+		
+		; Did you have reached the target?
+		dx# = autoGenCameraPointsCoordX#(cameraPointTarget) - cx#
+		dy# = autoGenCameraPointsCoordY#(cameraPointTarget) - cy#
+		dz# = autoGenCameraPointsCoordZ#(cameraPointTarget) - cz#
+		
+		d# = Sqr#(dx# * dx# + dz# * dz#)
+		
+		If (d# < ViewSpeed# * 2)
+			
+			prevoiousCameraPoint = cameraPointTarget
+			cameraPointTarget = cameraPointTarget + 1
+			
+		EndIf 
+		
+	EndIf 
+	
+End Function 
+
+; Exit from track view mode.
+Function QuitTrackView()
+	
+	; Reset track view parameters.
+	numCameraPointsPlaced 	= 0
+	
+	cameraPoint 			= 1
+	numAutoGenCameraPoints 	= 0
+	
+	cameraCoordX# 			= 0
+	cameraCoordZ# 			= 0
+	
+	cameraAngle# 			= 0
+	
+	cameraCiclesCounter 	= 0
+	
+	prevoiousCameraPoint 	= 0
+	cameraPointTarget 		= 1
+	
+	; Destroy all camera's markers.
+	For n = 0 To CameraMarkersNumber - 1
+		
+		cameraPointsPlaced(n) = False
+		
+		cameraPointsCoordX#(n) = FarAwayX#
+		cameraPointsCoordY#(n) = FarAwayY#
+		cameraPointsCoordZ#(n) = FarAwayZ#
+		
+	Next
+	
+	For n = 0 To AutoGenCameraPointsNumber - 1
+		
+		FreeEntity autoGenCameraPoints(n)
+		
+		autoGenCameraPointsCoordX#(n) = FarAwayX#
+		autoGenCameraPointsCoordY#(n) = FarAwayY#
+		autoGenCameraPointsCoordZ#(n) = FarAwayZ#
+		
+	Next 
+	
+	; Set the previous camera position.
+	RotateEntity camera, oldCameraPitch#, oldCameraYaw#, oldCameraRoll#
+	PositionEntity camera, oldCameraCoordX#, oldCameraCoordY#, oldCameraCoordZ#
+	
 End Function
 
 ; -----------------------------------------------------------------------------------
@@ -2301,7 +2651,8 @@ End Function
 
 ; -----------------------------------------------------------------------------------
 ;~IDEal Editor Parameters:
-;~F#167#189#1CF#1E0#1F2#20C#223#230#241#248#250#25D#26A#2AB#2BB#2D0#2F6#306#31D#343
-;~F#382#3AA#3BF#3D0#3E6#3EF#41D#42E#43D#506#51D#54A#555#560#569#593#5C6#5DC#5F6#600
-;~F#607#612#628#63D#66A#684#69D#6A4#6F0#6FF#72E#734#760#76A#7C6#7D0
+;~F#19C#1BE#204#23D#24F#269#280#28D#29E#2A5#2AD#2BA#2C7#308#318#32D#353#363#37A#3A4
+;~F#3E3#40B#420#433#449#452#480#491#4A0#569#580#5AD#5B8#5C3#5CC#5F6#629#63F#659#663
+;~F#66A#675#68B#6A0#6CD#6E7#700#707#753#762#78D#79A#7BF#828#85A#88C#892#8BE#8C8#924
+;~F#92E
 ;~C#Blitz3D
